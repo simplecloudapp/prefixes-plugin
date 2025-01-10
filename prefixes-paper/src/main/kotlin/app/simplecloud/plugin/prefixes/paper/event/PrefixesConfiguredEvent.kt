@@ -1,4 +1,4 @@
-package app.simplecloud.plugin.prefixes.spigot.event
+package app.simplecloud.plugin.prefixes.paper.event
 
 import org.bukkit.entity.Player
 import org.bukkit.event.Event

@@ -1,7 +1,8 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "1.8.0"
+    kotlin("jvm") version "2.0.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     java
 }
@@ -32,6 +33,7 @@ allprojects {
 
     dependencies {
         compileOnly("net.luckperms:api:5.4")
+        compileOnly("space.chunks.custom-names:custom-names-api:1.0.6")
         implementation("net.kyori:adventure-api:4.14.0")
         implementation("com.google.code.gson:gson:2.10.1")
         implementation("net.kyori:adventure-text-minimessage:4.14.0")
@@ -44,7 +46,9 @@ subprojects {
     }
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+        }
     }
 
     tasks.named("shadowJar", ShadowJar::class) {

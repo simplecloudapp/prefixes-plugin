@@ -1,7 +1,7 @@
-package app.simplecloud.plugin.prefixes.spigot.packet
+package app.simplecloud.plugin.prefixes.paper.packet
 
 import app.simplecloud.plugin.prefixes.api.PrefixesApi
-import app.simplecloud.plugin.prefixes.spigot.loader.SpigotPrefixesLoader
+import app.simplecloud.plugin.prefixes.paper.PaperPrefixesLoader
 import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.events.ListenerPriority
 import com.comphenix.protocol.events.PacketAdapter
@@ -17,7 +17,7 @@ class PlayerCreatePacketAdapter(private val prefixesPlugin: Plugin, private val 
     override fun onPacketReceiving(event: PacketEvent) {
         if (event.packetType == PacketType.Play.Client.CHAT_SESSION_UPDATE && !api.hasViewer(event.player.uniqueId)) {
             api.registerViewer(event.player.uniqueId)
-            SpigotPrefixesLoader.applyFirstName(api, prefixesPlugin, event.player)
+            PaperPrefixesLoader.applyFirstName(api, prefixesPlugin, event.player)
         }
     }
 }

@@ -1,4 +1,4 @@
-package app.simplecloud.plugin.prefixes.spigot
+package app.simplecloud.plugin.prefixes.paper.listener
 
 import app.simplecloud.plugin.prefixes.api.PrefixesApi
 import net.luckperms.api.LuckPerms

@@ -1,9 +1,10 @@
-package app.simplecloud.plugin.prefixes.spigot.packet
+package app.simplecloud.plugin.prefixes.paper.packet
 
-import app.simplecloud.plugin.prefixes.spigot.packet.v1_17_1.ComponentPacketTeam
+import app.simplecloud.plugin.prefixes.paper.packet.v1_17_1.ComponentPacketTeam
 import com.comphenix.protocol.events.PacketContainer
 import com.comphenix.protocol.utility.MinecraftVersion
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.entity.Player
 
@@ -22,6 +23,11 @@ abstract class PacketTeam(
     abstract fun getModifyTeamMembersPacket(mode: UpdateTeamPlayersMode, players: List<Player>): PacketContainer
     abstract fun getUpdateDisplayNamePackets(): List<PacketContainer>
     abstract fun getUpdateDisplayNamePacket(player: Player): PacketContainer
+
+    fun asComponent(player: Player): Component {
+        return (prefix ?: Component.text("")).append(Component.text(player.name).color(color ?: NamedTextColor.WHITE))
+            .append(suffix ?: Component.text(""))
+    }
 
     companion object {
         fun create(

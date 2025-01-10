@@ -1,16 +1,16 @@
-package app.simplecloud.plugin.prefixes.spigot
+package app.simplecloud.plugin.prefixes.paper
 
 import app.simplecloud.plugin.prefixes.api.PrefixesDisplay
-import app.simplecloud.plugin.prefixes.spigot.packet.PacketTeam
-import app.simplecloud.plugin.prefixes.spigot.packet.UpdateTeamMode
-import app.simplecloud.plugin.prefixes.spigot.packet.UpdateTeamPlayersMode
+import app.simplecloud.plugin.prefixes.paper.packet.PacketTeam
+import app.simplecloud.plugin.prefixes.paper.packet.UpdateTeamMode
+import app.simplecloud.plugin.prefixes.paper.packet.UpdateTeamPlayersMode
 import com.comphenix.protocol.ProtocolManager
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.entity.Player
 
-class PrefixesDisplaySpigotImpl(
-    private val manager: ProtocolManager
+class PaperPrefixesDisplay(
+    private val manager: ProtocolManager,
 ) : PrefixesDisplay<Component, Player, PacketTeam> {
 
     private val teams: MutableMap<String, PacketTeam> = mutableMapOf()
@@ -105,7 +105,6 @@ class PrefixesDisplaySpigotImpl(
                 manager.sendServerPacket(viewer, packet)
                 manager.sendServerPacket(viewer, displayPacket)
             }
-
         }
     }
 
@@ -149,5 +148,4 @@ class PrefixesDisplaySpigotImpl(
             }
         }
     }
-
 }

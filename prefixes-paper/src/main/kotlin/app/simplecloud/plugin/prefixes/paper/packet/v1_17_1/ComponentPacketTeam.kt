@@ -1,9 +1,9 @@
-package app.simplecloud.plugin.prefixes.spigot.packet.v1_17_1
+package app.simplecloud.plugin.prefixes.paper.packet.v1_17_1
 
 import app.simplecloud.plugin.prefixes.shared.ComponentSerializerImpl
-import app.simplecloud.plugin.prefixes.spigot.packet.PacketTeam
-import app.simplecloud.plugin.prefixes.spigot.packet.UpdateTeamMode
-import app.simplecloud.plugin.prefixes.spigot.packet.UpdateTeamPlayersMode
+import app.simplecloud.plugin.prefixes.paper.packet.PacketTeam
+import app.simplecloud.plugin.prefixes.paper.packet.UpdateTeamMode
+import app.simplecloud.plugin.prefixes.paper.packet.UpdateTeamPlayersMode
 import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.events.PacketContainer
 import com.comphenix.protocol.utility.MinecraftReflection
@@ -48,7 +48,7 @@ class ComponentPacketTeam(
                 .write(
                     0,
                     if (color != null) ChatColor.valueOf(
-                        NamedTextColor.nearestTo(color!!).toString().uppercase()
+                        NamedTextColor.nearestTo(color ?: NamedTextColor.WHITE).toString().uppercase()
                     ) else ChatColor.GRAY
                 )
             packet.optionalStructures.write(0, Optional.of(optional))

@@ -1,10 +1,10 @@
-package app.simplecloud.plugin.prefixes.spigot
+package app.simplecloud.plugin.prefixes.paper
 
 import app.simplecloud.plugin.prefixes.api.PrefixesActor
 import app.simplecloud.plugin.prefixes.api.PrefixesApi
 import app.simplecloud.plugin.prefixes.api.PrefixesGroup
 import app.simplecloud.plugin.prefixes.shared.MiniMessageImpl
-import app.simplecloud.plugin.prefixes.spigot.packet.PacketTeam
+import app.simplecloud.plugin.prefixes.paper.packet.PacketTeam
 import com.comphenix.protocol.ProtocolManager
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -15,25 +15,32 @@ import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import java.util.*
 
-class PrefixesActorSpigotImpl(
-    private var manager: ProtocolManager,
-    private var scoreboard: PrefixesGlobalDisplaySpigotImpl
+class PaperPrefixesActor(
+    private var scoreboard: PaperPrefixesGlobalDisplay,
+    private val manager: ProtocolManager,
 ) : PrefixesActor {
 
     init {
-        scoreboard.setDefaultDisplay(PrefixesDisplaySpigotImpl(manager))
+        scoreboard.setDefaultDisplay(PaperPrefixesDisplay(manager))
     }
 
     override fun registerViewer(target: UUID, api: PrefixesApi) {
         val targetPlayer = Bukkit.getPlayer(target) ?: return
-        val display = PrefixesDisplaySpigotImpl(manager)
+        val display = PaperPrefixesDisplay(manager)
         scoreboard.register(target, display)
         display.setViewer(targetPlayer)
         val defaultDisplay = scoreboard.getDefaultDisplay() ?: return
         Bukkit.getOnlinePlayers().forEach { player ->
             if (player.uniqueId != target) {
                 val team = defaultDisplay.getTeam(player.name) ?: return@forEach
-                apply(player.uniqueId, team.prefix ?: Component.text(""), team.color ?: NamedTextColor.WHITE, team.suffix ?: Component.text(""), team.priority ?: 0, target)
+                apply(
+                    player.uniqueId,
+                    team.prefix ?: Component.text(""),
+                    team.color ?: NamedTextColor.WHITE,
+                    team.suffix ?: Component.text(""),
+                    team.priority ?: 0,
+                    target
+                )
             }
         }
     }
@@ -66,7 +73,14 @@ class PrefixesActorSpigotImpl(
             setColor(target, group.getColor()!!, *viewers)
         scoreboard.removePlayer(player, *viewers)
         scoreboard.addPlayer(player.name, player, *viewers)
-        apply(target, group.getPrefix() ?: Component.text(""), group.getColor() ?: NamedTextColor.WHITE, group.getSuffix() ?: Component.text(""), group.getPriority(), *viewers)
+        apply(
+            target,
+            group.getPrefix() ?: Component.text(""),
+            group.getColor() ?: NamedTextColor.WHITE,
+            group.getSuffix() ?: Component.text(""),
+            group.getPriority(),
+            *viewers
+        )
     }
 
     override fun remove(target: UUID) {
@@ -112,7 +126,14 @@ class PrefixesActorSpigotImpl(
         scoreboard.updateColor(player.name, color, *viewers)
     }
 
-    override fun apply(target: UUID, prefix: Component, color: TextColor, suffix: Component, priority: Int, vararg viewers: UUID) {
+    override fun apply(
+        target: UUID,
+        prefix: Component,
+        color: TextColor,
+        suffix: Component,
+        priority: Int,
+        vararg viewers: UUID
+    ) {
         val player: Player = Bukkit.getPlayer(target) ?: return
         scoreboard.update(
             player.name,
