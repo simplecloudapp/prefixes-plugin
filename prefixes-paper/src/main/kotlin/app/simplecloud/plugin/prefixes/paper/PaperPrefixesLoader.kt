@@ -8,10 +8,8 @@ import app.simplecloud.plugin.prefixes.api.impl.PrefixesConfigImpl
 import app.simplecloud.plugin.prefixes.paper.event.PrefixesConfigureEvent
 import app.simplecloud.plugin.prefixes.paper.event.PrefixesConfiguredEvent
 import app.simplecloud.plugin.prefixes.paper.listener.LuckPermsListener
-import app.simplecloud.plugin.prefixes.paper.packet.PlayerCreatePacketAdapter
 import app.simplecloud.plugin.prefixes.shared.PrefixesApiLuckPermsImpl
 import app.simplecloud.plugin.prefixes.shared.PrefixesConfigParser
-import com.comphenix.protocol.ProtocolManager
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.luckperms.api.LuckPerms
@@ -28,20 +26,20 @@ import space.chunks.customname.api.CustomNameManager
 import java.io.File
 
 class PaperPrefixesLoader(
-    private val manager: ProtocolManager,
     private val plugin: Plugin,
     private val chatLoader: PrefixesChatLoader
 ) : PrefixesPluginLoader, Listener {
 
     private lateinit var api: PrefixesApiImpl
+    private lateinit var actor: PaperPrefixesActor
     override fun load(): PrefixesApiImpl? {
         val customNameManager = Bukkit.getServicesManager().load(CustomNameManager::class.java) ?: return null
         val luckPermsProvider: RegisteredServiceProvider<LuckPerms> =
             Bukkit.getServicesManager().getRegistration(LuckPerms::class.java) ?: return null
-        val prefixesApiActor = PaperPrefixesActor(PaperPrefixesGlobalDisplay(customNameManager), manager)
+        actor = PaperPrefixesActor(PaperPrefixesGlobalDisplay(customNameManager))
         val luckPerms: LuckPerms = luckPermsProvider.provider
         api = PrefixesApiLuckPermsImpl(luckPerms)
-        api.setActor(prefixesApiActor)
+        api.setActor(actor)
         api.setConfig(
             PrefixesConfigParser<PrefixesConfigImpl>(File(plugin.dataFolder, "config.json")).parse(
                 PrefixesConfigImpl::class.java,
@@ -52,7 +50,7 @@ class PaperPrefixesLoader(
         api.indexGroups()
         Bukkit.getPluginManager().registerEvents(this, plugin)
         Bukkit.getServicesManager().register(PrefixesApi::class.java, api, plugin, ServicePriority.Normal)
-        manager.addPacketListener(PlayerCreatePacketAdapter(plugin, api))
+
         chatLoader.load(api)
         LuckPermsListener(plugin, luckPerms, api).init()
         return api
@@ -71,6 +69,7 @@ class PaperPrefixesLoader(
     @EventHandler
     fun onQuit(event: PlayerQuitEvent) {
         api.removeViewer(event.player.uniqueId)
+        actor.remove(event.player.uniqueId)
     }
 
     companion object {

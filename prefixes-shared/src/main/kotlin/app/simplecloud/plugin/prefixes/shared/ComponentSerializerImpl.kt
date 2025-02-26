@@ -1,6 +1,5 @@
 package app.simplecloud.plugin.prefixes.shared
 
-import com.comphenix.protocol.wrappers.WrappedChatComponent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
@@ -23,10 +22,6 @@ class ComponentSerializerImpl {
 
         fun deserializeLegacy(text: String): Component {
             return legacyImpl.deserialize(text)
-        }
-
-        fun serializeToPacket(component: Component): WrappedChatComponent {
-            return WrappedChatComponent.fromJson(serialize(component))
         }
     }
 }

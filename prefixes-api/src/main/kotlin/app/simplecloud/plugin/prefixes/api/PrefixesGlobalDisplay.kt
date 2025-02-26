@@ -69,9 +69,9 @@ open class PrefixesGlobalDisplay<C, P, T> {
         }
     }
 
-    open fun addPlayer(id: String, player: P, vararg players: UUID) {
+    open fun setPlayer(id: String, player: P, vararg players: UUID) {
         executeFor(players.toList()) {
-            it.addPlayer(id, player)
+            it.setPlayer(id, player)
         }
     }
 

@@ -1,7 +1,0 @@
-name: Prefixes
-version: 1.1
-main: app.simplecloud.plugin.prefixes.paper.PrefixesPlugin
-depend:
-  - LuckPerms
-authors:
-  - dayyeeet

@@ -4,8 +4,7 @@ import app.simplecloud.plugin.prefixes.api.PrefixesActor
 import app.simplecloud.plugin.prefixes.api.PrefixesApi
 import app.simplecloud.plugin.prefixes.api.PrefixesGroup
 import app.simplecloud.plugin.prefixes.shared.MiniMessageImpl
-import app.simplecloud.plugin.prefixes.paper.packet.PacketTeam
-import com.comphenix.protocol.ProtocolManager
+import io.papermc.paper.adventure.PaperAdventure
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
@@ -17,16 +16,15 @@ import java.util.*
 
 class PaperPrefixesActor(
     private var scoreboard: PaperPrefixesGlobalDisplay,
-    private val manager: ProtocolManager,
 ) : PrefixesActor {
 
     init {
-        scoreboard.setDefaultDisplay(PaperPrefixesDisplay(manager))
+        scoreboard.setDefaultDisplay(PaperPrefixesDisplay())
     }
 
     override fun registerViewer(target: UUID, api: PrefixesApi) {
         val targetPlayer = Bukkit.getPlayer(target) ?: return
-        val display = PaperPrefixesDisplay(manager)
+        val display = PaperPrefixesDisplay()
         scoreboard.register(target, display)
         display.setViewer(targetPlayer)
         val defaultDisplay = scoreboard.getDefaultDisplay() ?: return
@@ -35,10 +33,10 @@ class PaperPrefixesActor(
                 val team = defaultDisplay.getTeam(player.name) ?: return@forEach
                 apply(
                     player.uniqueId,
-                    team.prefix ?: Component.text(""),
-                    team.color ?: NamedTextColor.WHITE,
-                    team.suffix ?: Component.text(""),
-                    team.priority ?: 0,
+                    PaperAdventure.asAdventure(team.playerPrefix),
+                    TextColor.color(team.realColor),
+                    PaperAdventure.asAdventure(team.playerSuffix),
+                    defaultDisplay.getPriority(team) ?: 0,
                     target
                 )
             }
@@ -71,8 +69,7 @@ class PaperPrefixesActor(
         )
         if (group.getColor() != null)
             setColor(target, group.getColor()!!, *viewers)
-        scoreboard.removePlayer(player, *viewers)
-        scoreboard.addPlayer(player.name, player, *viewers)
+        scoreboard.setPlayer(player.name, player, *viewers)
         apply(
             target,
             group.getPrefix() ?: Component.text(""),
@@ -102,15 +99,16 @@ class PaperPrefixesActor(
         val display = if (viewer != null) scoreboard.getDisplay(viewer)
             .orElseGet { scoreboard.getDefaultDisplay() } else scoreboard.getDefaultDisplay() ?: return message
         val targetPlayer = Bukkit.getPlayer(target) ?: return message
-        val team: PacketTeam? = display.getTeam(targetPlayer.name)
+        val team: PaperPlayerTeam? = display.getTeam(targetPlayer.name)
         val tags = mutableListOf<TagResolver>()
         if (team != null) {
-            tags.add(Placeholder.component("prefix", team.prefix ?: Component.text("")))
-            tags.add(Placeholder.component("suffix", team.suffix ?: Component.text("")))
+            tags.add(Placeholder.component("prefix", PaperAdventure.asAdventure(team.playerPrefix)))
+            tags.add(Placeholder.component("suffix", PaperAdventure.asAdventure(team.playerSuffix)))
             tags.add(
                 Placeholder.component(
                     "name_colored",
-                    Component.text(Bukkit.getPlayer(target)!!.name).color(team.color)
+                    Component.text(Bukkit.getPlayer(target)!!.name)
+                        .color(team.realColor)
                 )
             )
             tags.add(Placeholder.unparsed("name", targetPlayer.name))
@@ -143,7 +141,6 @@ class PaperPrefixesActor(
             *viewers
         )
         setColor(target, color, *viewers)
-        scoreboard.removePlayer(player, *viewers)
-        scoreboard.addPlayer(player.name, player, *viewers)
+        scoreboard.setPlayer(player.name, player, *viewers)
     }
 }

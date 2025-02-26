@@ -13,6 +13,7 @@ import net.minestom.server.scoreboard.Team
 class PrefixesTablist : PrefixesDisplay<Component, Player, Team> {
 
     private val teams = mutableListOf<Team>()
+    private val priorities = mutableMapOf<Team, Int>()
     private val viewers = mutableSetOf<Player>()
     private var color: TextColor = NamedTextColor.GRAY
     override fun addViewer(player: Player): Boolean {
@@ -57,6 +58,10 @@ class PrefixesTablist : PrefixesDisplay<Component, Player, Team> {
         return teams.firstOrNull { it.teamName.endsWith(id) }
     }
 
+    override fun getPriority(team: Team): Int? {
+        return priorities[team]
+    }
+
     fun copyTeam(team: Team, id: String, priority: Int): Team? {
         val newTeam = createTeam(id, priority) ?: return null
         newTeam.prefix = team.prefix
@@ -70,7 +75,9 @@ class PrefixesTablist : PrefixesDisplay<Component, Player, Team> {
         val team = getTeam(id) ?: return null
         val newTeam = copyTeam(team, id, priority) ?: return null
         teams.remove(team)
+        priorities.remove(team)
         teams.add(newTeam)
+        priorities[newTeam] = priority
         return newTeam
     }
 
@@ -94,7 +101,7 @@ class PrefixesTablist : PrefixesDisplay<Component, Player, Team> {
         }
     }
 
-    override fun addPlayer(id: String, player: Player) {
+    override fun setPlayer(id: String, player: Player) {
         val team = getTeam(id) ?: createTeam(id) ?: return
         team.addMember(player.username)
     }

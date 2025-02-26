@@ -6,7 +6,7 @@ interface PrefixesDisplay<C, P, T> {
     fun createTeam(id: String, priority: Int = 0): T?
     fun getTeam(id: String): T?
     fun updatePrefix(id: String, prefix: C)
-
+    fun getPriority(team: T): Int?
     fun updateSuffix(id: String, suffix: C)
 
     fun updatePriority(id: String, priority: Int): T?
@@ -23,7 +23,7 @@ interface PrefixesDisplay<C, P, T> {
         return result
     }
 
-    fun addPlayer(id: String, player: P)
+    fun setPlayer(id: String, player: P)
     fun removePlayer(player: P)
     fun setViewer(player: P): Boolean
     fun addViewer(player: P): Boolean
