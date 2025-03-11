@@ -1,6 +1,6 @@
-package app.simplecloud.plugin.prefixes.shared
+package app.simplecloud.plugin.prefixes.api
 
-import app.simplecloud.plugin.prefixes.api.PrefixesGroup
+import app.simplecloud.plugin.prefixes.shared.MiniMessageImpl
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 import net.luckperms.api.LuckPerms

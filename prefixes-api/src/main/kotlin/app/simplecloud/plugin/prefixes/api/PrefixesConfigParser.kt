@@ -1,6 +1,5 @@
-package app.simplecloud.plugin.prefixes.shared
+package app.simplecloud.plugin.prefixes.api
 
-import app.simplecloud.plugin.prefixes.api.PrefixesConfig
 import com.google.gson.Gson
 import com.google.gson.stream.JsonReader
 import java.io.File

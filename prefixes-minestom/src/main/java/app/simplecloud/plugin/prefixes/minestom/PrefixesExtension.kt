@@ -5,8 +5,8 @@ import app.simplecloud.plugin.prefixes.api.PrefixesGroup
 import app.simplecloud.plugin.prefixes.api.impl.PrefixesApiImpl
 import app.simplecloud.plugin.prefixes.api.impl.PrefixesConfigImpl
 import app.simplecloud.plugin.prefixes.shared.MiniMessageImpl
-import app.simplecloud.plugin.prefixes.shared.PrefixesApiLuckPermsImpl
-import app.simplecloud.plugin.prefixes.shared.PrefixesConfigParser
+import app.simplecloud.plugin.prefixes.api.PrefixesApiLuckPermsImpl
+import app.simplecloud.plugin.prefixes.api.PrefixesConfigParser
 import jdk.jfr.Experimental
 import me.lucko.luckperms.minestom.LPMinestomPlugin
 import net.kyori.adventure.text.Component
