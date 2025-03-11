@@ -1,6 +1,7 @@
 package app.simplecloud.plugin.prefixes.minestom
 
 import app.simplecloud.plugin.prefixes.api.PrefixesActor
+import app.simplecloud.plugin.prefixes.api.PrefixesApi
 import app.simplecloud.plugin.prefixes.api.PrefixesGroup
 import app.simplecloud.plugin.prefixes.shared.MiniMessageImpl
 import net.kyori.adventure.text.Component
@@ -10,38 +11,52 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.minestom.server.MinecraftServer
 import net.minestom.server.entity.Player
-import net.minestom.server.scoreboard.Team
 import java.util.*
 
-class PrefixesActorMinestomImpl(private var scoreboard: PrefixesScoreboardMinestomImpl) : PrefixesActor {
+class PrefixesActorMinestomImpl(private var scoreboard: PrefixesGlobalDisplayMinestomImpl) : PrefixesActor {
+    override fun registerViewer(target: UUID, api: PrefixesApi) {
+        scoreboard.register(target, PrefixesTablist())
+    }
+
+    override fun hasViewer(target: UUID): Boolean {
+        return scoreboard.getDisplay(target).orElse(null) != null
+    }
+
+    override fun removeViewer(target: UUID) {
+        val player = MinecraftServer.getConnectionManager().getPlayer(target) ?: return
+        val display = scoreboard.getDisplay(player.uuid).orElse(null) ?: return
+        display.removeViewer(player)
+        scoreboard.removeDisplay(player.uuid)
+    }
+
     override fun applyGroup(
         target: UUID,
-        group: PrefixesGroup
+        group: PrefixesGroup,
+        vararg viewers: UUID,
     ) {
-        val player: Player = MinecraftServer.getConnectionManager().getPlayer(target) ?: return
-        scoreboard.update(
-            target,
-            group.getPrefix(), group.getSuffix()
-        )
-        setColor(target, group.getColor())
-        scoreboard.apply(target, player.username)
+        apply(target, group.getPrefix() ?: Component.text(""), group.getColor() ?: NamedTextColor.WHITE, group.getSuffix() ?: Component.text(""), group.getPriority(), *viewers)
     }
 
     override fun remove(target: UUID) {
         val player: Player = MinecraftServer.getConnectionManager().getPlayer(target) ?: return
-        scoreboard.remove(player.username)
+        scoreboard.removePlayer(player)
     }
 
-    override fun setPrefix(target: UUID, prefix: Component) {
-        scoreboard.updatePrefix(target, prefix)
+    override fun setPrefix(target: UUID, prefix: Component, vararg viewers: UUID) {
+        val player: Player = MinecraftServer.getConnectionManager().getPlayer(target) ?: return
+        scoreboard.updatePrefix(player.username, prefix)
     }
 
-    override fun setSuffix(target: UUID, suffix: Component) {
-        scoreboard.updatePrefix(target, suffix)
+    override fun setSuffix(target: UUID, suffix: Component, vararg viewers: UUID) {
+        val player: Player = MinecraftServer.getConnectionManager().getPlayer(target) ?: return
+        scoreboard.updateSuffix(player.username, suffix)
     }
 
-    override fun formatMessage(target: UUID, format: String, message: Component): Component {
-        val team: Team? = MinecraftServer.getTeamManager().getTeam(target.toString())
+    override fun formatMessage(target: UUID, viewer: UUID?, format: String, message: Component): Component {
+        val targetPlayer = MinecraftServer.getConnectionManager().getPlayer(target) ?: return message
+        val display = if (viewer != null) scoreboard.getDisplay(viewer)
+            .orElse(scoreboard.getDefaultDisplay()) else scoreboard.getDefaultDisplay() ?: return message
+        val team = display.getTeam(targetPlayer.username)
         val tags = mutableListOf<TagResolver>()
         if (team != null) {
             tags.add(Placeholder.component("prefix", team.prefix))
@@ -66,7 +81,27 @@ class PrefixesActorMinestomImpl(private var scoreboard: PrefixesScoreboardMinest
         return MiniMessageImpl.parse(format, tags)
     }
 
-    override fun setColor(target: UUID, color: String) {
-        scoreboard.updateColor(target, NamedTextColor.nearestTo(TextColor.fromHexString(color)!!))
+    override fun setColor(target: UUID, color: TextColor, vararg viewers: UUID) {
+        val player: Player = MinecraftServer.getConnectionManager().getPlayer(target) ?: return
+        scoreboard.updateColor(player.username, color, *viewers)
+    }
+
+    override fun apply(
+        target: UUID,
+        prefix: Component,
+        color: TextColor,
+        suffix: Component,
+        priority: Int,
+        vararg viewers: UUID
+    ) {
+        val player: Player = MinecraftServer.getConnectionManager().getPlayer(target) ?: return
+        scoreboard.update(
+            player.username,
+            prefix, suffix, priority,
+            *viewers
+        )
+        setColor(target, color, *viewers)
+        scoreboard.removePlayer(player, *viewers)
+        scoreboard.addPlayer(player.username, player, *viewers)
     }
 }
