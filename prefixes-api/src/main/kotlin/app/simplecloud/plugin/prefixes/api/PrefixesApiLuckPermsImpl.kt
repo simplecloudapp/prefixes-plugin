@@ -1,4 +1,4 @@
-package app.simplecloud.plugin.prefixes.shared
+package app.simplecloud.plugin.prefixes.api
 
 import app.simplecloud.plugin.prefixes.api.impl.PrefixesApiImpl
 import net.luckperms.api.LuckPerms
