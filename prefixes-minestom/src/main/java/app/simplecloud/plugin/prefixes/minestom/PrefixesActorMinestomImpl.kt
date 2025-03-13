@@ -101,7 +101,6 @@ class PrefixesActorMinestomImpl(private var scoreboard: PrefixesGlobalDisplayMin
             *viewers
         )
         setColor(target, color, *viewers)
-        scoreboard.removePlayer(player, *viewers)
-        scoreboard.addPlayer(player.username, player, *viewers)
+        scoreboard.setPlayer(player.username, player, *viewers)
     }
 }
