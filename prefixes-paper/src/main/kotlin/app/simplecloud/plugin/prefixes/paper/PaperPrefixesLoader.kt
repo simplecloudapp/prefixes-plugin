@@ -8,8 +8,8 @@ import app.simplecloud.plugin.prefixes.api.impl.PrefixesConfigImpl
 import app.simplecloud.plugin.prefixes.paper.event.PrefixesConfigureEvent
 import app.simplecloud.plugin.prefixes.paper.event.PrefixesConfiguredEvent
 import app.simplecloud.plugin.prefixes.paper.listener.LuckPermsListener
-import app.simplecloud.plugin.prefixes.shared.PrefixesApiLuckPermsImpl
-import app.simplecloud.plugin.prefixes.shared.PrefixesConfigParser
+import app.simplecloud.plugin.prefixes.api.PrefixesApiLuckPermsImpl
+import app.simplecloud.plugin.prefixes.api.PrefixesConfigParser
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.luckperms.api.LuckPerms
