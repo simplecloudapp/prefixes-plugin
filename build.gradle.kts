@@ -142,7 +142,7 @@ subprojects {
 }
 
 fun determineVersion(): String {
-    val baseVersion = project.findProperty("baseVersion")?.toString() ?: "0.0.0"
+    val baseVersion = project.findProperty("baseVersion")?.toString() ?: "0.0.1"
     val releaseType = project.findProperty("releaseType")?.toString() ?: "snapshot"
     val commitHash = System.getenv("COMMIT_HASH") ?: "local"
 
