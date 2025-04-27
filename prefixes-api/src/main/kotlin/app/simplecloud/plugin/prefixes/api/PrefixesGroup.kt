@@ -12,5 +12,5 @@ interface PrefixesGroup {
     fun getSuffix(): Component?
     fun getPriority(): Int
     fun containsPlayer(uniqueId: UUID): Boolean
-    fun containsPlayerFuture(uniqueId: UUID): CompletableFuture<Boolean>
+    fun containsPlayerAsync(uniqueId: UUID): CompletableFuture<Boolean>
 }

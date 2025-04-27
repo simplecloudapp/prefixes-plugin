@@ -1,90 +1,74 @@
 package app.simplecloud.plugin.prefixes.api
 
-import net.kyori.adventure.text.format.TextColor
+import net.kyori.adventure.audience.Audience
 import java.util.*
 
-open class PrefixesGlobalDisplay<C, P, T> {
+open class PrefixesGlobalDisplay<P>() {
 
 
-    private val displays = mutableMapOf<UUID, PrefixesDisplay<C, P, T>>()
+    private val displays = mutableMapOf<Audience, PrefixesDisplay<P>>()
 
 
-    private var defaultDisplay: PrefixesDisplay<C, P, T>? = null
+    private var defaultDisplay: PrefixesDisplay<P>? = null
 
-    private fun executeFor(players: List<UUID>, action: (display: PrefixesDisplay<C, P, T>) -> Unit) {
-        displays.filter { players.isEmpty() || players.contains(it.key) }.forEach { display ->
+    private fun executeFor(audience: Audience? = null, action: (display: PrefixesDisplay<P>) -> Unit) {
+        if (audience == null) {
+            defaultDisplay?.let { action(it) }
+            return
+        }
+        displays.filter { it.key == audience }.forEach { display ->
             action(display.value)
         }
-        if (players.isEmpty())
-            defaultDisplay?.let { action(it) }
     }
 
-    fun getDisplay(player: UUID): Optional<PrefixesDisplay<C, P, T>> {
-        return Optional.ofNullable(displays.getOrDefault(player, null))
+    fun getDisplay(audience: Audience): Optional<PrefixesDisplay<P>> {
+        return Optional.ofNullable(displays.getOrDefault(audience, null))
     }
 
-    fun removeDisplay(player: UUID) {
-        displays.remove(player)
+    fun remove(audience: Audience) {
+        displays.remove(audience)
     }
 
-    fun getDefaultDisplay(): PrefixesDisplay<C, P, T>? {
+    fun getDefaultDisplay(): PrefixesDisplay<P>? {
         return defaultDisplay
     }
 
-    fun setDefaultDisplay(display: PrefixesDisplay<C, P, T>) {
+    fun setDefaultDisplay(display: PrefixesDisplay<P>) {
         this.defaultDisplay = display
     }
 
-    fun register(uuid: UUID, display: PrefixesDisplay<C, P, T>) {
-        displays[uuid] = display
+    fun register(audience: Audience, display: PrefixesDisplay<P>) {
+        displays[audience] = display
+        defaultDisplay?.getAll()?.forEach { display.apply(it.key, it.value) }
     }
 
-    fun createTeam(id: String) {
-        executeFor(displays.keys.toList()) {
-            it.createTeam(id)
+    fun apply(player: P, content: PrefixesPlayerData, audience: Audience?) {
+        // Remove the player from all other audiences as we change something globally
+        if (audience == null) {
+            displays.filter { it.key != defaultDisplay }.forEach { it.value.remove(player) }
+        }
+
+        executeFor(audience) {
+            // Transition from the global display if we need to
+            if (it != defaultDisplay && it.getCurrent(player) == null) {
+                val present = defaultDisplay?.getCurrent(player)
+                if (present != null) {
+                    it.transition(player, present)
+                }
+            }
+            it.apply(player, content)
         }
     }
 
-    fun updatePrefix(id: String, prefix: C, vararg players: UUID) {
-        executeFor(players.toList()) {
-            it.updatePrefix(id, prefix)
-        }
+    fun remove(player: P) {
+        defaultDisplay?.remove(player)
+        displays.forEach { it.value.remove(player) }
     }
 
-    fun updateSuffix(id: String, suffix: C, vararg players: UUID) {
-        executeFor(players.toList()) {
-            it.updateSuffix(id, suffix)
-        }
-    }
-
-    fun updatePriority(id: String, priority: Int, vararg players: UUID) {
-        executeFor(players.toList()) {
-            it.updatePriority(id, priority)
-        }
-    }
-
-    fun update(id: String, prefix: C, suffix: C, priority: Int, vararg players: UUID) {
-        executeFor(players.toList()) {
-            it.update(id, prefix, suffix, priority)
-        }
-    }
-
-    open fun setPlayer(id: String, player: P, vararg players: UUID) {
-        executeFor(players.toList()) {
-            it.setPlayer(id, player)
-        }
-    }
-
-    fun removePlayer(player: P, vararg players: UUID) {
-        executeFor(players.toList()) {
-            it.removePlayer(player)
-        }
-    }
-
-    fun updateColor(id: String, color: TextColor, vararg players: UUID) {
-        executeFor(players.toList()) {
-            it.updateColor(id, color)
-        }
+    fun getCurrent(player: P, audience: Audience?): PrefixesPlayerData? {
+        var result: PrefixesPlayerData? = null
+        executeFor(audience) { result = it.getCurrent(player) }
+        return result
     }
 
 }
