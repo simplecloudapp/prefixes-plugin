@@ -1,7 +1,6 @@
 package app.simplecloud.plugin.prefixes.paper.event
 
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.TextColor
+import app.simplecloud.plugin.prefixes.api.PrefixesPlayerData
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
@@ -12,18 +11,17 @@ import org.bukkit.event.HandlerList
  */
 data class PrefixesConfigureEvent(
     val player: Player,
-    var prefix: Component?,
-    var suffix: Component?,
-    var color: TextColor?,
-    var priority: Int,
-): Event() {
+    val data: PrefixesPlayerData,
+) : Event() {
     companion object {
         private val handlers: HandlerList = HandlerList()
+
         @JvmStatic
         fun getHandlerList(): HandlerList {
             return handlers
         }
     }
+
     override fun getHandlers(): HandlerList {
         return Companion.handlers
     }

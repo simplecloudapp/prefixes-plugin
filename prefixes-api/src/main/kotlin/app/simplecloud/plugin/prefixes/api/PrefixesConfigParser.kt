@@ -5,8 +5,8 @@ import com.google.gson.stream.JsonReader
 import java.io.File
 import java.io.FileReader
 
-class PrefixesConfigParser<C : PrefixesConfig>(private val configFile: File) {
-    fun parse(type: Class<C>, default: C): C {
+class PrefixesConfigParser(private val configFile: File) {
+    fun parse(type: Class<PrefixesConfig>, default: PrefixesConfig): PrefixesConfig {
         if (!configFile.exists()) return default
         val gson = Gson()
         val reader = JsonReader(FileReader(configFile))

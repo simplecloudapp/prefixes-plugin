@@ -14,13 +14,6 @@ class MiniMessageImpl {
             return miniMessage.deserialize(text)
         }
 
-        fun parse(text: String, vararg tags: TagResolver): Component {
-            if (text.contains("§")) {
-                return ComponentSerializerImpl.deserializeLegacy(text)
-            }
-            return miniMessage.deserialize(text, TagResolver.resolver(tags.asIterable()))
-        }
-
         fun parse(text: String, tags: Iterable<TagResolver>): Component {
             if (text.contains("§")) {
                 return ComponentSerializerImpl.deserializeLegacy(text)

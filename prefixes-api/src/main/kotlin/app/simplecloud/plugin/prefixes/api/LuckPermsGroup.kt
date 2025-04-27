@@ -31,10 +31,10 @@ class LuckPermsGroup(private var group: Group, private var luckPerms: LuckPerms)
     }
 
     override fun containsPlayer(uniqueId: UUID): Boolean {
-        return containsPlayerFuture(uniqueId).join()
+        return containsPlayerAsync(uniqueId).join()
     }
 
-    override fun containsPlayerFuture(uniqueId: UUID): CompletableFuture<Boolean> {
+    override fun containsPlayerAsync(uniqueId: UUID): CompletableFuture<Boolean> {
         return luckPerms.userManager.loadUser(uniqueId).thenApplyAsync { user ->
             return@thenApplyAsync user.primaryGroup == getName()
         }
