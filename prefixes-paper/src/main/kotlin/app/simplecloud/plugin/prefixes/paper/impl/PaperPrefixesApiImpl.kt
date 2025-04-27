@@ -10,6 +10,7 @@ import app.simplecloud.plugin.prefixes.shared.MiniMessageImpl
 import io.papermc.paper.event.player.AsyncChatEvent
 import io.papermc.paper.event.player.PlayerClientLoadedWorldEvent
 import net.kyori.adventure.audience.Audience
+import net.kyori.adventure.identity.Identity
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
@@ -32,22 +33,23 @@ open class PaperPrefixesApiImpl(private val plugin: Plugin, private val name: Cu
     private val display = PaperPrefixesGlobalDisplayImpl()
     private lateinit var config: PrefixesConfig
 
-    /**
-     * Registering audiences with multiple players is highly unstable at the moment.
-     */
     @ApiStatus.Internal
     override fun registerAudience(audience: Audience) {
-        display.register(audience, PaperPrefixesDisplayImpl(audience))
+        audience.toSingleAudiences().forEach {
+            display.register(it, PaperPrefixesDisplayImpl(it))
+        }
     }
 
     @ApiStatus.Internal
     override fun hasAudience(audience: Audience): Boolean {
-        return display.getDisplay(audience).isPresent
+        return !audience.toSingleAudiences().any { !display.getDisplay(it).isPresent }
     }
 
     @ApiStatus.Internal
     override fun removeAudience(audience: Audience) {
-        display.remove(audience)
+        audience.toSingleAudiences().forEach {
+            display.remove(it)
+        }
     }
 
     override fun setWholeName(
@@ -71,7 +73,13 @@ open class PaperPrefixesApiImpl(private val plugin: Plugin, private val name: Cu
     override fun setWholeName(
         player: Player, data: PrefixesPlayerData, audience: Audience?
     ) {
-        display.apply(player, data, audience)
+        if (audience == null) {
+            display.apply(player, data, audience)
+            return
+        }
+        audience.toSingleAudiences().forEach {
+            display.apply(player, data, it)
+        }
     }
 
     override fun editWholeName(
@@ -202,4 +210,14 @@ open class PaperPrefixesApiImpl(private val plugin: Plugin, private val name: Cu
             return@renderer formatChatMessage(player, config.getChatFormat(), message, viewer)
         }
     }
+}
+
+private fun Audience.toSingleAudiences(): List<Audience> {
+    val uuid = this.get(Identity.UUID)
+    if (uuid.isPresent) {
+        return listOf(this)
+    }
+    val result = mutableListOf<Audience>()
+    this.forEachAudience { if (it != this) result.addAll(it.toSingleAudiences()) }
+    return result
 }
