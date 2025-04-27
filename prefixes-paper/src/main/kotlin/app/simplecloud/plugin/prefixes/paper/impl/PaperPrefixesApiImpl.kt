@@ -183,7 +183,7 @@ open class PaperPrefixesApiImpl(private val plugin: Plugin, private val name: Cu
         }
     }
 
-    // TODO: Find a better event to listen to, we want to register the audience when all current player infos have loaded
+    // TODO: Find a better event to listen to, we want to register the audience directly after all online player infos have loaded, for now this is one tick delayed
     @EventHandler
     fun onPacketReady(event: PlayerClientLoadedWorldEvent) {
         if (hasAudience(event.player)) return

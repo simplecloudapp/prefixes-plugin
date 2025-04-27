@@ -119,7 +119,7 @@ class PaperPrefixesDisplayImpl(
                 return current
             }
         }
-        currentAudience.forEachAudience { toHandles(it, current) }
+        currentAudience.forEachAudience { if (it != currentAudience) toHandles(it, current) }
         return current
     }
 }
