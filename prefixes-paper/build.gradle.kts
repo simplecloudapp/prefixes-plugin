@@ -24,7 +24,11 @@ modrinth {
         "1.21.1",
         "1.21.2",
         "1.21.3",
-        "1.21.4"
+        "1.21.4",
+        "1.21.5",
+        "1.21.6",
+        "1.21.7",
+        "1.21.8"
     )
     loaders.add("paper")
     changelog.set("https://docs.simplecloud.app/changelog")
