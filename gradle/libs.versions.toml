@@ -1,15 +1,39 @@
 [versions]
-kotlin = "2.0.20"
-shadow = "8.3.3"
-paper-api = "1.21.4-R0.1-SNAPSHOT"
-paperweight = "2.0.0-beta.12"
-minotaur = "2.8.7"
-sonatype-central-portal-publisher = "1.2.3"
+kotlin = "2.2.20"
+
+paper-api = "1.21.11-R0.1-SNAPSHOT"
+luckperms-api = "5.5"
+custom-names-api = "1.0.6"
+
+adventure = "4.26.1"
+
+minestom-ce-snapshots = "1_20_2-e7f833b499"
+minestom-ce-extensions = "1.2.0"
+
+gson = "2.13.2"
+
+paperweight = "2.0.0-beta.19"
+minotaur = "2.8.10"
+shadow = "9.3.1"
+sonatype-central-portal-publisher = "1.2.4"
 
 [libraries]
 kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
+luckperms-api = { module = "net.luckperms:api", version.ref = "luckperms-api" }
+custom-names-api = { module = "space.chunks.custom-names:custom-names-api", version.ref = "custom-names-api" }
+
+adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
+adventure-text-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
+adventure-text-serializer-gson = { module = "net.kyori:adventure-text-serializer-gson", version.ref = "adventure" }
+adventure-text-serializer-legacy = { module = "net.kyori:adventure-text-serializer-legacy", version.ref = "adventure" }
+
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+
+minestom-ce-snapshots = { module = "dev.hollowcube:minestom-ce-snapshots", version.ref = "minestom-ce-snapshots" }
+minestom-ce-extensions = { module = "dev.hollowcube:minestom-ce-extensions", version.ref = "minestom-ce-extensions" }
 
 [plugins]
 paperweight-userdev = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }

@@ -52,11 +52,12 @@ abstract class PrefixesApiImpl : PrefixesApi {
     }
 
     override fun setWholeName(uniqueId: UUID, groupName: String, viewers: Audience) {
-        setWholeName(
-            uniqueId,
-            groups.stream().filter { group -> group.getName() == groupName }.findFirst().orElse(null),
-            viewers
-        )
+        val group = groups.stream()
+            .filter { group -> group.getName() == groupName }
+            .findFirst()
+            .orElse(null) ?: return
+
+        setWholeName(uniqueId, group, viewers)
     }
 
     override fun setWholeName(
@@ -96,11 +97,12 @@ abstract class PrefixesApiImpl : PrefixesApi {
     }
 
     override fun setWholeName(uniqueId: UUID, groupName: String, vararg viewers: UUID) {
-        setWholeName(
-            uniqueId,
-            groups.stream().filter { group -> group.getName() == groupName }.findFirst().orElse(null),
-            *viewers
-        )
+        val group = groups.stream()
+            .filter { group -> group.getName() == groupName }
+            .findFirst()
+            .orElse(null) ?: return
+
+        setWholeName(uniqueId, group, *viewers)
     }
 
     override fun setWholeName(

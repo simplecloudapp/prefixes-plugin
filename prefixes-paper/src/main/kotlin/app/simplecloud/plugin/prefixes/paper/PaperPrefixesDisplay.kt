@@ -38,7 +38,7 @@ class PaperPrefixesDisplay : PrefixesDisplay<Component, Player, PaperPlayerTeam>
         val team = getTeam(id) ?: return null
         val deletePacket = ClientboundSetPlayerTeamPacket.createRemovePacket(team)
         viewers.forEach { viewer ->
-            (viewer as CraftPlayer).handle.connection.sendPacket(deletePacket)
+            (viewer as CraftPlayer).handle.connection.send(deletePacket)
         }
         val newTeam = changeTeamPriority(priority, team) ?: return null
         val createPacket = ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(newTeam, true)
@@ -49,8 +49,8 @@ class PaperPrefixesDisplay : PrefixesDisplay<Component, Player, PaperPlayerTeam>
         )
         viewers.forEach { viewer ->
             with(viewer as CraftPlayer) {
-                handle.connection.sendPacket(createPacket)
-                handle.connection.sendPacket(addPlayersPacket)
+                handle.connection.send(createPacket)
+                handle.connection.send(addPlayersPacket)
             }
         }
         teams[id] = newTeam
@@ -62,7 +62,7 @@ class PaperPrefixesDisplay : PrefixesDisplay<Component, Player, PaperPlayerTeam>
         team.realColor = color
         val updatePacket = ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, false)
         viewers.forEach { viewer ->
-            (viewer as CraftPlayer).handle.connection.sendPacket(updatePacket)
+            (viewer as CraftPlayer).handle.connection.send(updatePacket)
         }
         sendUpdateDisplayNamePackets(team)
     }
@@ -76,7 +76,7 @@ class PaperPrefixesDisplay : PrefixesDisplay<Component, Player, PaperPlayerTeam>
         if (result) {
             teams.values.forEach { team ->
                 val deletePacket = ClientboundSetPlayerTeamPacket.createRemovePacket(team)
-                (player as CraftPlayer).handle.connection.sendPacket(deletePacket)
+                (player as CraftPlayer).handle.connection.send(deletePacket)
                 getPlayersForTeam(team).filter { Bukkit.getPlayer(it)?.isOnline ?: false }
                     .map { Bukkit.getPlayer(it)!! }.forEach { sendUpdateDisplayNamePacket(it) }
             }
@@ -95,8 +95,8 @@ class PaperPrefixesDisplay : PrefixesDisplay<Component, Player, PaperPlayerTeam>
                     ClientboundSetPlayerTeamPacket.Action.ADD
                 )
                 with(player as CraftPlayer) {
-                    handle.connection.sendPacket(createPacket)
-                    handle.connection.sendPacket(addPlayersPacket)
+                    handle.connection.send(createPacket)
+                    handle.connection.send(addPlayersPacket)
                 }
                 sendUpdateDisplayNamePackets(team)
             }
@@ -118,7 +118,7 @@ class PaperPrefixesDisplay : PrefixesDisplay<Component, Player, PaperPlayerTeam>
             player.name,
             ClientboundSetPlayerTeamPacket.Action.REMOVE
         )
-        viewers.forEach { viewer -> (viewer as CraftPlayer).handle.connection.sendPacket(packet) }
+        viewers.forEach { viewer -> (viewer as CraftPlayer).handle.connection.send(packet) }
         sendUpdateDisplayNamePackets(team)
     }
 
@@ -131,7 +131,7 @@ class PaperPrefixesDisplay : PrefixesDisplay<Component, Player, PaperPlayerTeam>
                     player.name,
                     ClientboundSetPlayerTeamPacket.Action.REMOVE
                 )
-                viewers.forEach { viewer -> (viewer as CraftPlayer).handle.connection.sendPacket(delete) }
+                viewers.forEach { viewer -> (viewer as CraftPlayer).handle.connection.send(delete) }
             }
 
         }
@@ -141,7 +141,7 @@ class PaperPrefixesDisplay : PrefixesDisplay<Component, Player, PaperPlayerTeam>
             player.name,
             ClientboundSetPlayerTeamPacket.Action.ADD
         )
-        viewers.forEach { viewer -> (viewer as CraftPlayer).handle.connection.sendPacket(packet) }
+        viewers.forEach { viewer -> (viewer as CraftPlayer).handle.connection.send(packet) }
         sendUpdateDisplayNamePackets(team)
     }
 
@@ -155,7 +155,7 @@ class PaperPrefixesDisplay : PrefixesDisplay<Component, Player, PaperPlayerTeam>
 
         viewers.forEach { viewer ->
             with(viewer as CraftPlayer) {
-                handle.connection.sendPacket(packet)
+                handle.connection.send(packet)
             }
         }
         sendUpdateDisplayNamePackets(team)
@@ -168,7 +168,7 @@ class PaperPrefixesDisplay : PrefixesDisplay<Component, Player, PaperPlayerTeam>
         val packet = ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, false)
         viewers.forEach { viewer ->
             with(viewer as CraftPlayer) {
-                handle.connection.sendPacket(packet)
+                handle.connection.send(packet)
             }
         }
         sendUpdateDisplayNamePackets(team)
@@ -181,7 +181,7 @@ class PaperPrefixesDisplay : PrefixesDisplay<Component, Player, PaperPlayerTeam>
         val packet = ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, false)
         viewers.forEach { viewer ->
             with(viewer as CraftPlayer) {
-                handle.connection.sendPacket(packet)
+                handle.connection.send(packet)
             }
         }
         sendUpdateDisplayNamePackets(team)
@@ -213,7 +213,7 @@ class PaperPrefixesDisplay : PrefixesDisplay<Component, Player, PaperPlayerTeam>
         )
         viewers.forEach { viewer ->
             with(viewer as CraftPlayer) {
-                handle.connection.sendPacket(update)
+                handle.connection.send(update)
             }
         }
     }

@@ -6,10 +6,10 @@ dependencies:
   server:
     LuckPerms:
       load: BEFORE
-      require: true
+      required: true
     CustomNames:
       load: BEFORE
-      require: true
+      required: true
       join-classpath: true
 authors:
   - dayyeeet

@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     api(project(":prefixes-api"))
-    paperweight.paperDevBundle("1.21.4-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
     compileOnly(libs.paper.api)
 }
 
@@ -28,7 +28,10 @@ modrinth {
         "1.21.5",
         "1.21.6",
         "1.21.7",
-        "1.21.8"
+        "1.21.8",
+        "1.21.9",
+        "1.21.10",
+        "1.21.11"
     )
     loaders.add("paper")
     changelog.set("https://docs.simplecloud.app/changelog")

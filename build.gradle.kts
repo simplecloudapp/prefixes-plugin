@@ -14,12 +14,10 @@ allprojects {
 
     repositories {
         mavenCentral()
-        maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
         maven("https://oss.sonatype.org/content/repositories/snapshots")
         maven("https://oss.sonatype.org/content/repositories/central")
         maven("https://repo.papermc.io/repository/maven-public/")
         maven("https://jitpack.io")
-        maven("https://repo.dmulloy2.net/repository/public/")
     }
 }
 
@@ -36,11 +34,11 @@ subprojects {
         compileOnly(rootProject.libs.kotlin.jvm)
         compileOnly(rootProject.libs.kotlin.test)
 
-        compileOnly("net.luckperms:api:5.4")
-        compileOnly("space.chunks.custom-names:custom-names-api:1.0.6")
-        implementation("net.kyori:adventure-api:4.14.0")
-        implementation("com.google.code.gson:gson:2.10.1")
-        implementation("net.kyori:adventure-text-minimessage:4.14.0")
+        compileOnly(rootProject.libs.luckperms.api)
+        compileOnly(rootProject.libs.custom.names.api)
+        implementation(rootProject.libs.adventure.api)
+        implementation(rootProject.libs.adventure.text.minimessage)
+        implementation(rootProject.libs.gson)
     }
 
     java {
