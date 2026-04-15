@@ -5,10 +5,33 @@ kotlinx-coroutines = "1.10.2"
 minotaur = "2.9.0"
 shadow = "9.4.1"
 
+simplecloud-api = "0.1.0-platform.23-dev.1775473227066-1c0c25a"
+simplecloud-plugin-api = "0.0.1-platform.1775946101240-f45d1bc"
+
+adventure-api = "4.26.1"
+
+configurate = "4.2.0"
+log4j = "2.25.4"
+
 [libraries]
 kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+
+simplecloud-api = { module = "app.simplecloud.api:api", version.ref = "simplecloud-api" }
+simplecloud-plugin-api = { module = "app.simplecloud.plugin:plugin-shared", version.ref = "simplecloud-plugin-api" }
+
+adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure-api" }
+adventure-text-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-api" }
+
+configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
+configurate-kotlin = { module = "org.spongepowered:configurate-extra-kotlin", version.ref = "configurate" }
+
+log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+
+[bundles]
+configurate = ["configurate-kotlin", "configurate-yaml"]
+adventure = ["adventure-api", "adventure-text-minimessage"]
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
