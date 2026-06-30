@@ -27,9 +27,13 @@ subprojects {
     }
 
     dependencies {
-        implementation(rootProject.libs.kotlin.jvm)
         implementation(rootProject.libs.kotlinx.coroutines.core)
         testImplementation(rootProject.libs.kotlin.test)
+
+        compileOnly(rootProject.libs.log4j.api)
+        compileOnly(rootProject.libs.luckperms.api)
+        compileOnly(rootProject.libs.simplecloud.api)
+        compileOnly(rootProject.libs.custom.names.api)
     }
 
     kotlin {
@@ -52,6 +56,12 @@ subprojects {
     tasks.shadowJar {
         mergeServiceFiles()
         archiveFileName.set("${project.name}.jar")
+    }
+
+    tasks.processResources {
+        expand(
+            "version" to project.version
+        )
     }
 
 }

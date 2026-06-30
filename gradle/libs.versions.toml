@@ -5,24 +5,33 @@ kotlinx-coroutines = "1.11.0"
 minotaur = "2.9.0"
 shadow = "9.4.3"
 
-simplecloud-api = "0.1.0-platform.23-dev.1775473227066-1c0c25a"
-simplecloud-plugin-api = "0.0.1-platform.1775946101240-f45d1bc"
+simplecloud-api = "0.1.0-platform.30-dev.1779808903098-53ec137"
+simplecloud-plugin-api = "0.0.1-platform.1778966459069-b1e45e2"
 
-adventure-api = "5.2.0"
+adventure = "5.2.0"
+
+paper = "26.1.2.build.+"
+
+luckperms = "5.5"
+custom-names = "1.0.6"
 
 configurate = "4.2.0"
 log4j = "2.25.4"
 
 [libraries]
-kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 
 simplecloud-api = { module = "app.simplecloud.api:api", version.ref = "simplecloud-api" }
 simplecloud-plugin-api = { module = "app.simplecloud.plugin:plugin-shared", version.ref = "simplecloud-plugin-api" }
 
-adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure-api" }
-adventure-text-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure-api" }
+adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
+adventure-text-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
+
+paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
+
+luckperms-api = { module = "net.luckperms:api", version.ref = "luckperms" }
+custom-names-api = { module = "space.chunks.custom-names:custom-names-api", version.ref = "custom-names" }
 
 configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
 configurate-kotlin = { module = "org.spongepowered:configurate-extra-kotlin", version.ref = "configurate" }
