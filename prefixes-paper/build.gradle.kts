@@ -1,10 +1,14 @@
 plugins {
     alias(libs.plugins.minotaur)
+    alias(libs.plugins.paperweight.userdev)
 }
 
 dependencies {
     api(project(":prefixes-shared"))
     compileOnly(libs.paper.api)
+    compileOnly(libs.custom.names.api)
+    implementation(libs.cloud.command.paper)
+    paperweight.paperDevBundle(libs.versions.paper)
 }
 
 modrinth {

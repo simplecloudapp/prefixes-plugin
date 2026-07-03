@@ -12,7 +12,7 @@ dependencies:
       join-classpath: true
     LuckPerms:
       load: BEFORE
-      required: true
+      required: false
       join-classpath: true
     CustomNames:
       load: BEFORE

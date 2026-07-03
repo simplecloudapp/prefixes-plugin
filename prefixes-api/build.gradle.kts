@@ -1,3 +1,3 @@
 dependencies {
-    implementation(libs.bundles.adventure)
+    api(libs.bundles.adventure)
 }

@@ -8,7 +8,7 @@ plugins {
 
 allprojects {
     group = "app.simplecloud.plugin"
-    version = "1.0.0"
+    version = "1.0.0-beta.1"
 
     repositories {
         mavenCentral()
@@ -33,7 +33,6 @@ subprojects {
         compileOnly(rootProject.libs.log4j.api)
         compileOnly(rootProject.libs.luckperms.api)
         compileOnly(rootProject.libs.simplecloud.api)
-        compileOnly(rootProject.libs.custom.names.api)
     }
 
     kotlin {
