@@ -32,24 +32,35 @@ class PaperDisplayManager(
                 player.playerListName(tablistName)
 
                 val team = PaperPlayerTeam(player, data)
-                val packet = ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true)
-
-                Bukkit.getOnlinePlayers().forEach { player ->
-                    (player as CraftPlayer).handle.connection.send(packet)
-                }
+                broadcast(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true))
 
                 val name = customNameManager.forEntity(player)
                 name.setName(data.displayName)
             })
+        }.exceptionally { _ ->
+            plugin.logger.warning("Failed to update prefix data of ${player.name}")
+            null
         }
     }
 
     fun removePlayer(player: Player) {
-        cache.remove(player.uniqueId)
-        val data = cache[player.uniqueId] ?: return
+        val data = cache.remove(player.uniqueId) ?: return
         val team = PaperPlayerTeam(player, data)
-        val packet = ClientboundSetPlayerTeamPacket.createRemovePacket(team)
 
+        broadcast(ClientboundSetPlayerTeamPacket.createRemovePacket(team))
+    }
+
+    fun sync(player: Player) {
+        val connection = (player as CraftPlayer).handle.connection
+
+        Bukkit.getOnlinePlayers().forEach { player ->
+            val data = cache[player.uniqueId] ?: return@forEach
+            val team = PaperPlayerTeam(player, data)
+            connection.send(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true))
+        }
+    }
+
+    private fun broadcast(packet: ClientboundSetPlayerTeamPacket) {
         Bukkit.getOnlinePlayers().forEach { player ->
             (player as CraftPlayer).handle.connection.send(packet)
         }

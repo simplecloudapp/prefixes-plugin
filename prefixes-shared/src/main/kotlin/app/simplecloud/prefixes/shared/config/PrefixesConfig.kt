@@ -15,9 +15,7 @@ data class PrefixesConfig(
 @ConfigSerializable
 data class GeneralConfig(
     val source: SourceType = SourceType.CONFIG,
-    val defaultGroup: String = "default",
-    val useHighestPriority: Boolean = true,
-    val updateDisplayName: Boolean = true
+    val defaultGroup: String = "default"
 )
 
 enum class SourceType {

@@ -16,6 +16,7 @@ class PlayerListener(
     @EventHandler
     fun onJoin(event: PlayerJoinEvent) {
         manager.updatePlayer(event.player)
+        manager.sync(event.player)
     }
 
     @EventHandler

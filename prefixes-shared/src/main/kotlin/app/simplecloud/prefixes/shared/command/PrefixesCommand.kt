@@ -11,7 +11,7 @@ class PrefixesCommand<C : PrefixesSender>(
     private val prefixes: Prefixes
 ) {
 
-    private val messages = prefixes.messages.get()
+    private val messages get() = prefixes.messages.get()
 
     fun register() {
         registerRoot()
@@ -50,10 +50,11 @@ class PrefixesCommand<C : PrefixesSender>(
                         return@suspendingHandler
                     }
 
-                    try {
+                    runCatching {
                         prefixes.reload()
+                    }.onSuccess {
                         sender.sendMessage(messages.msg(messages.command.reload.success))
-                    } catch (_: Exception) {
+                    }.onFailure {
                         sender.sendMessage(messages.msg(messages.command.reload.failed))
                     }
                 }
