@@ -21,7 +21,7 @@ class Prefixes(platform: PrefixesPlatform) {
         loadOrCreate(MessageConfig())
     }
 
-    private val configGroupProvider = ConfigGroupProvider({ config.get() }, platform.permissionChecker)
+    private val configGroupProvider = ConfigGroupProvider(config, platform.permissionChecker)
     private val lpGroupProvider = platform.luckPerms?.let { LuckPermsGroupProvider(it) }
 
     val api: PrefixesApi = PrefixesApiImpl({

@@ -27,4 +27,12 @@ interface PrefixesApi {
      */
     fun getPrefixData(id: UUID): CompletableFuture<PrefixesPlayerData>
 
+    /**
+     * Adds a new group to the group provider.
+     *
+     * @param group The group to add
+     * @return A future completing with `true` if the group was created, or `false` if a group with that name already exists.
+     */
+    fun addGroup(group: PrefixesGroup): CompletableFuture<Boolean>
+
 }

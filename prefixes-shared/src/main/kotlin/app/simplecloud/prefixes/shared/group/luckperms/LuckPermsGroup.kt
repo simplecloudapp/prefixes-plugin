@@ -2,7 +2,7 @@ package app.simplecloud.prefixes.shared.group.luckperms
 
 import app.simplecloud.plugin.api.shared.extension.miniMessage
 import app.simplecloud.prefixes.api.group.PrefixesGroup
-import app.simplecloud.prefixes.shared.utilities.parseColor
+import app.simplecloud.prefixes.api.util.parseColor
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 import net.luckperms.api.LuckPerms

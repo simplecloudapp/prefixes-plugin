@@ -25,4 +25,12 @@ interface GroupProvider {
      * @return A future completing with the player's group, or null if none matches.
      */
     fun getGroup(id: UUID): CompletableFuture<PrefixesGroup?>
+
+    /**
+     * Adds a new group to this provider's source.
+     *
+     * @param group The group to add
+     * @return A future completing with `true` if the group was created, or `false` if a group with that name already exists.
+     */
+    fun addGroup(group: PrefixesGroup): CompletableFuture<Boolean>
 }

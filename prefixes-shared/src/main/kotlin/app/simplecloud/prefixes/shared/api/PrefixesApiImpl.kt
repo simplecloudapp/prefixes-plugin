@@ -20,6 +20,8 @@ class PrefixesApiImpl(
 
     override fun getPrimaryGroup(id: UUID): CompletableFuture<PrefixesGroup?> = provider().getGroup(id)
 
+    override fun addGroup(group: PrefixesGroup): CompletableFuture<Boolean> = provider().addGroup(group)
+
     override fun getPrefixData(id: UUID): CompletableFuture<PrefixesPlayerData> {
         return getPrimaryGroup(id).thenApply { group ->
             val prefix = group?.prefix ?: Component.empty()
