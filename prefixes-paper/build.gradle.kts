@@ -11,6 +11,11 @@ dependencies {
     paperweight.paperDevBundle(libs.versions.paper)
 }
 
+tasks.shadowJar {
+    relocate("com.google.protobuf", "app.simplecloud.prefixes.libs.protobuf")
+    exclude("org/bouncycastle/jcajce/io/DigestUpdatingOutputStream.class")
+}
+
 modrinth {
     token.set(project.findProperty("modrinthToken") as String? ?: System.getenv("MODRINTH_TOKEN"))
     projectId.set("FZ0Sdplu")

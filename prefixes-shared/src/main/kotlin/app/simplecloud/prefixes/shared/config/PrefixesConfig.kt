@@ -15,7 +15,22 @@ data class PrefixesConfig(
 @ConfigSerializable
 data class GeneralConfig(
     val source: SourceType = SourceType.CONFIG,
-    val defaultGroup: String = "default"
+    val defaultGroup: String = "default",
+    val sync: SyncConfig = SyncConfig()
+)
+
+@ConfigSerializable
+data class SyncConfig(
+    val tablist: SyncTargets = SyncTargets(),
+    val chat: SyncTargets = SyncTargets()
+)
+
+@ConfigSerializable
+data class SyncTargets(
+    val enabled: Boolean = true,
+    val allServers: Boolean = true,
+    val serverGroups: List<String> = emptyList(),
+    val persistentServers: List<String> = emptyList()
 )
 
 enum class SourceType {

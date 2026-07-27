@@ -1,15 +1,16 @@
 [versions]
-kotlin = "2.4.0"
+kotlin = "2.4.10"
 kotlinx-coroutines = "1.11.0"
 
+shadow = "9.5.1"
 minotaur = "2.9.0"
-shadow = "9.4.3"
 paperweight = "2.0.0-beta.21"
+protobuf = "0.10.0"
 
-simplecloud-api = "0.1.0-platform.30-dev.1779808903098-53ec137"
+simplecloud-api = "0.1.0-platform.40"
 simplecloud-plugin-api = "0.0.1-platform.1778966459069-b1e45e2"
 
-paper = "26.1.2.build.+"
+paper = "26.2.build.+"
 
 adventure = "5.2.0"
 luckperms = "5.5"
@@ -19,7 +20,11 @@ cloud-command = "2.0.0"
 cloud-command-platform = "2.0.0-SNAPSHOT"
 
 configurate = "4.2.0"
-log4j = "2.25.4"
+
+protoc = "4.35.1"
+protobuf-kotlin = "4.35.1"
+
+jnats = "2.26.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -30,6 +35,7 @@ simplecloud-plugin-api = { module = "app.simplecloud.plugin:plugin-shared", vers
 
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
 adventure-text-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
+adventure-text-serializer-gson = { module = "net.kyori:adventure-text-serializer-gson", version.ref = "adventure" }
 
 cloud-command-core = { module = "org.incendo:cloud-core", version.ref = "cloud-command" }
 cloud-command-coroutines = { module = "org.incendo:cloud-kotlin-coroutines", version.ref = "cloud-command" }
@@ -43,11 +49,14 @@ custom-names-api = { module = "space.chunks.custom-names:custom-names-api", vers
 configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
 configurate-kotlin = { module = "org.spongepowered:configurate-extra-kotlin", version.ref = "configurate" }
 
-log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+protoc = { module = "com.google.protobuf:protoc", version.ref = "protoc" }
+protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf-kotlin" }
+
+jnats = { module = "io.nats:jnats", version.ref = "jnats" }
 
 [bundles]
 configurate = ["configurate-kotlin", "configurate-yaml"]
-adventure = ["adventure-api", "adventure-text-minimessage"]
+adventure = ["adventure-api", "adventure-text-minimessage", "adventure-text-serializer-gson"]
 cloud-command = ["cloud-command-core", "cloud-command-coroutines"]
 
 [plugins]
@@ -55,3 +64,4 @@ kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
 paperweight-userdev = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }

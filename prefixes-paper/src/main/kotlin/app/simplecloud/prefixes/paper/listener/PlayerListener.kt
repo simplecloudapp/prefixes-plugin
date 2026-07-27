@@ -1,22 +1,26 @@
 package app.simplecloud.prefixes.paper.listener
 
-import app.simplecloud.plugin.api.shared.extension.miniMessage
 import app.simplecloud.prefixes.paper.display.PaperDisplayManager
+import app.simplecloud.prefixes.paper.display.PaperTablist
+import app.simplecloud.prefixes.shared.sync.SyncPublisher
+import app.simplecloud.prefixes.shared.utilities.renderChatMessage
 import io.papermc.paper.event.player.AsyncChatEvent
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 
 class PlayerListener(
-    private val manager: PaperDisplayManager
+    private val manager: PaperDisplayManager,
+    private val tablist: PaperTablist,
+    private val publisher: SyncPublisher?
 ) : Listener {
 
     @EventHandler
     fun onJoin(event: PlayerJoinEvent) {
         manager.updatePlayer(event.player)
-        manager.sync(event.player)
+        manager.syncPlayers(event.player)
+        tablist.sync(event.player)
     }
 
     @EventHandler
@@ -29,18 +33,9 @@ class PlayerListener(
         val player = event.player
         val data = manager.getPlayer(player.uniqueId) ?: return
 
-        event.renderer { source, _, message, _ ->
-            val placeholders = listOf(
-                Placeholder.component("prefix", data.prefix),
-                Placeholder.component("suffix", data.suffix),
-                Placeholder.styling("color", data.color),
-                Placeholder.unparsed("playername", source.name),
-                Placeholder.unparsed("name", source.name),
-                Placeholder.component("displayname", data.displayName),
-                Placeholder.component("message", message)
-            )
+        val message = data.renderChatMessage(player.name, event.message())
 
-            miniMessage.deserialize(data.chatFormat, *placeholders.toTypedArray())
-        }
+        event.renderer { _, _, _, _ -> message }
+        publisher?.publishChatMessage(message)
     }
 }

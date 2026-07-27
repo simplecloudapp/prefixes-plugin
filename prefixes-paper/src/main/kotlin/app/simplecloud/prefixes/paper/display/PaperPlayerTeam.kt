@@ -1,22 +1,29 @@
 package app.simplecloud.prefixes.paper.display
 
-import app.simplecloud.prefixes.api.group.PrefixesPlayerData
 import app.simplecloud.prefixes.shared.utilities.getPriorityString
 import io.papermc.paper.adventure.PaperAdventure
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
-import net.minecraft.ChatFormatting
+import net.kyori.adventure.text.format.TextColor
 import net.minecraft.world.scores.PlayerTeam
 import net.minecraft.world.scores.Scoreboard
-import org.bukkit.entity.Player
+import net.minecraft.world.scores.TeamColor
+import java.util.Optional
 
-class PaperPlayerTeam(player: Player, content: PrefixesPlayerData) : PlayerTeam(Scoreboard(), "${content.getPriorityString()}_${player.name}") {
+class PaperPlayerTeam(
+    name: String,
+    priority: Int,
+    prefix: Component = Component.empty(),
+    suffix: Component = Component.empty(),
+    color: TextColor = NamedTextColor.WHITE
+) : PlayerTeam(Scoreboard(), "${priority.getPriorityString()}_$name") {
 
     init {
-        players.add(player.name)
+        players.add(name)
         nameTagVisibility = Visibility.NEVER
-        color = ChatFormatting.valueOf(NamedTextColor.nearestTo(content.color).toString().uppercase())
+        this.color = Optional.of(TeamColor.valueOf(NamedTextColor.nearestTo(color).toString().uppercase()))
 
-        setPlayerPrefix(PaperAdventure.asVanilla(content.prefix))
-        setPlayerSuffix(PaperAdventure.asVanilla(content.suffix))
+        setPlayerPrefix(PaperAdventure.asVanilla(prefix))
+        setPlayerSuffix(PaperAdventure.asVanilla(suffix))
     }
 }

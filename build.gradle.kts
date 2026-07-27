@@ -30,7 +30,6 @@ subprojects {
         implementation(rootProject.libs.kotlinx.coroutines.core)
         testImplementation(rootProject.libs.kotlin.test)
 
-        compileOnly(rootProject.libs.log4j.api)
         compileOnly(rootProject.libs.luckperms.api)
         compileOnly(rootProject.libs.simplecloud.api)
     }

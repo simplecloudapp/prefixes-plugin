@@ -3,6 +3,7 @@ package app.simplecloud.prefixes.paper
 import app.simplecloud.prefixes.api.PrefixesApi
 import app.simplecloud.prefixes.paper.command.PrefixesPaperSenderMapper
 import app.simplecloud.prefixes.paper.display.PaperDisplayManager
+import app.simplecloud.prefixes.paper.display.PaperTablist
 import app.simplecloud.prefixes.paper.listener.LuckPermsListener
 import app.simplecloud.prefixes.paper.listener.PlayerListener
 import app.simplecloud.prefixes.paper.platform.PaperPlatformImpl
@@ -34,7 +35,19 @@ class PrefixesPaper : JavaPlugin() {
         Bukkit.getServicesManager().register(PrefixesApi::class.java, prefixes.api, this, ServicePriority.Normal)
 
         val manager = PaperDisplayManager(this, prefixes, customNameManager)
-        Bukkit.getPluginManager().registerEvents(PlayerListener(manager), this)
+        val tablist = PaperTablist()
+        Bukkit.getPluginManager().registerEvents(PlayerListener(manager, tablist, prefixes.sync?.publisher), this)
+
+        // Apply chat and tablist updates of the configured sync targets.
+        prefixes.sync?.let { sync ->
+            sync.subscriber.subscribeChatMessage { message -> Bukkit.getServer().sendMessage(message) }
+            sync.subscriber.subscribeTablist(
+                onUpdate = tablist::update,
+                onRemove = tablist::remove,
+                onRequest = manager::sync
+            )
+            sync.publisher.publishTablistRequest()
+        }
 
         val source = prefixes.config.get().general.source
         logger.info("Using Source Type: ${source.name}")
