@@ -1,6 +1,6 @@
 package app.simplecloud.prefixes.paper.display
 
-import app.simplecloud.prefixes.shared.utilities.getPriorityString
+import app.simplecloud.prefixes.shared.utilities.PriorityFormatter
 import io.papermc.paper.adventure.PaperAdventure
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -16,7 +16,7 @@ class PaperPlayerTeam(
     prefix: Component = Component.empty(),
     suffix: Component = Component.empty(),
     color: TextColor = NamedTextColor.WHITE
-) : PlayerTeam(Scoreboard(), "${priority.getPriorityString()}_$name") {
+) : PlayerTeam(Scoreboard(), "${PriorityFormatter.format(priority)}_$name") {
 
     init {
         players.add(name)

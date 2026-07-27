@@ -1,7 +1,5 @@
 package app.simplecloud.prefixes.shared.sync.tablist
 
-import app.simplecloud.prefixes.shared.utilities.serializer
-import app.simplecloud.prefixes.v1.TablistEntryUpdateEvent
 import net.kyori.adventure.text.Component
 import java.util.UUID
 
@@ -12,22 +10,10 @@ data class TablistEntry(
     val uniqueId: UUID,
     val name: String,
     val displayName: Component,
-    val priority: Int
-) {
-
-    fun toDefinition(): TablistEntryUpdateEvent = TablistEntryUpdateEvent.newBuilder()
-        .setPlayerId(uniqueId.toString())
-        .setPlayerName(name)
-        .setDisplayName(serializer.serialize(displayName))
-        .setPriority(priority)
-        .build()
-
-    companion object {
-        fun fromDefinition(definition: TablistEntryUpdateEvent) = TablistEntry(
-            uniqueId = UUID.fromString(definition.playerId),
-            name = definition.playerName,
-            displayName = serializer.deserialize(definition.displayName),
-            priority = definition.priority
-        )
-    }
-}
+    val priority: Int,
+    val profileProperties: List<ProfileProperty> = emptyList(),
+    val latency: Int = 0,
+    val gameMode: TablistGameMode = TablistGameMode.SURVIVAL,
+    val showHat: Boolean = true,
+    val listOrder: Int = 0
+)

@@ -44,9 +44,13 @@ class PrefixesPaper : JavaPlugin() {
             sync.subscriber.subscribeTablist(
                 onUpdate = tablist::update,
                 onRemove = tablist::remove,
-                onRequest = manager::sync
+                onRequest = { manager.sync(force = true) }
             )
             sync.publisher.publishTablistRequest()
+
+            if (prefixes.config.get().general.sync.tablist.enabled) {
+                Bukkit.getScheduler().runTaskTimer(this, Runnable { manager.sync() }, 600L, 600L)
+            }
         }
 
         val source = prefixes.config.get().general.source

@@ -16,6 +16,8 @@ class PrefixesSubjects(
 
     fun isOwn(subject: String): Boolean = subject.startsWith(prefix)
 
+    fun publisherId(subject: String, event: String): String = subject.removeSuffix(".$event")
+
     fun patterns(targets: SyncTargets, subject: String): List<String> {
         if (targets.allServers) return listOf("$root.*.*.$subject")
         return (targets.serverGroups + targets.persistentServers).map { "$root.$it.*.$subject" }

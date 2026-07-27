@@ -4,8 +4,9 @@ import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
 import app.simplecloud.prefixes.shared.config.SyncTargets
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
+import app.simplecloud.prefixes.shared.sync.tablist.TablistEntryMapper
+import app.simplecloud.prefixes.shared.utilities.ComponentSerialization
 import app.simplecloud.prefixes.shared.utilities.PrefixesSubjects
-import app.simplecloud.prefixes.shared.utilities.serializer
 import app.simplecloud.prefixes.v1.ChatMessageEvent
 import app.simplecloud.prefixes.v1.TablistEntryRemoveEvent
 import app.simplecloud.prefixes.v1.TablistEntryUpdateEvent
@@ -25,18 +26,40 @@ class SyncSubscriber(
 
     fun subscribeChatMessage(handler: (Component) -> Unit) {
         subscribe(sync().chat, PrefixesSubjects.CHAT) { message ->
-            handler(serializer.deserialize(ChatMessageEvent.parseFrom(message.data).json))
+            handler(ComponentSerialization.deserialize(ChatMessageEvent.parseFrom(message.data).json))
         }
     }
 
-    fun subscribeTablist(onUpdate: (TablistEntry) -> Unit, onRemove: (UUID) -> Unit, onRequest: () -> Unit) {
+    fun subscribeTablist(
+        onUpdate: (TablistEntry) -> Unit,
+        onRemove: (UUID) -> Unit,
+        onRequest: () -> Unit
+    ) {
+        subscribeTablist(
+            onUpdate = { _, entry -> onUpdate(entry) },
+            onRemove = { _, id -> onRemove(id) },
+            onRequest = onRequest
+        )
+    }
+
+    fun subscribeTablist(
+        onUpdate: (String, TablistEntry) -> Unit,
+        onRemove: (String, UUID) -> Unit,
+        onRequest: () -> Unit
+    ) {
         val targets = sync().tablist
 
         subscribe(targets, PrefixesSubjects.TABLIST_UPDATE) { message ->
-            onUpdate(TablistEntry.fromDefinition(TablistEntryUpdateEvent.parseFrom(message.data)))
+            onUpdate(
+                subjects.publisherId(message.subject, PrefixesSubjects.TABLIST_UPDATE),
+                TablistEntryMapper.fromDefinition(TablistEntryUpdateEvent.parseFrom(message.data))
+            )
         }
         subscribe(targets, PrefixesSubjects.TABLIST_REMOVE) { message ->
-            onRemove(UUID.fromString(TablistEntryRemoveEvent.parseFrom(message.data).playerId))
+            onRemove(
+                subjects.publisherId(message.subject, PrefixesSubjects.TABLIST_REMOVE),
+                UUID.fromString(TablistEntryRemoveEvent.parseFrom(message.data).playerId)
+            )
         }
         subscribe(targets, PrefixesSubjects.TABLIST_REQUEST) {
             onRequest()
