@@ -20,7 +20,7 @@ modrinth {
     token.set(project.findProperty("modrinthToken") as String? ?: System.getenv("MODRINTH_TOKEN"))
     projectId.set("FZ0Sdplu")
     versionNumber.set(rootProject.version.toString())
-    versionType.set("beta")
+    versionType.set("release")
     uploadFile.set(tasks.shadowJar)
     gameVersions.addAll(
         "1.21",
@@ -37,9 +37,10 @@ modrinth {
         "1,21.11",
         "26.1",
         "26.1.1",
-        "26.1.2"
+        "26.1.2",
+        "26.2"
     )
-    loaders.add("paper")
+    loaders.addAll("paper", "purpur")
     changelog.set("https://docs.simplecloud.app/changelog")
     syncBodyFrom.set(rootProject.file("README.md").readText())
 }
