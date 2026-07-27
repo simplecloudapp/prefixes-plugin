@@ -6,6 +6,7 @@ import app.simplecloud.prefixes.shared.sync.SyncPublisher
 import app.simplecloud.prefixes.shared.utilities.renderChatMessage
 import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -18,6 +19,7 @@ class PlayerListener(
 
     @EventHandler
     fun onJoin(event: PlayerJoinEvent) {
+        tablist.remove(event.player.uniqueId)
         manager.updatePlayer(event.player)
         manager.syncPlayers(event.player)
         tablist.sync(event.player)
@@ -28,7 +30,7 @@ class PlayerListener(
         manager.removePlayer(event.player)
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onChat(event: AsyncChatEvent) {
         val player = event.player
         val data = manager.getPlayer(player.uniqueId) ?: return

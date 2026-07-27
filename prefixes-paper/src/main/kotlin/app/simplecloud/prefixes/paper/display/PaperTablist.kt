@@ -29,6 +29,8 @@ class PaperTablist {
 
     fun remove(id: UUID) {
         val entry = entries.remove(id) ?: return
+        if (Bukkit.getPlayer(id) != null) return
+
         broadcast(ClientboundSetPlayerTeamPacket.createRemovePacket(entry.toTeam()))
         broadcast(ClientboundPlayerInfoRemovePacket(listOf(id)))
     }
