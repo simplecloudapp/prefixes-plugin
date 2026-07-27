@@ -4,8 +4,9 @@ import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
 import app.simplecloud.prefixes.shared.config.SyncTargets
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
+import app.simplecloud.prefixes.shared.sync.tablist.TablistEntryMapper
+import app.simplecloud.prefixes.shared.utilities.ComponentSerialization
 import app.simplecloud.prefixes.shared.utilities.PrefixesSubjects
-import app.simplecloud.prefixes.shared.utilities.serializer
 import app.simplecloud.prefixes.v1.ChatMessageEvent
 import app.simplecloud.prefixes.v1.TablistEntryRemoveEvent
 import app.simplecloud.prefixes.v1.TablistSyncRequest
@@ -22,12 +23,12 @@ class SyncPublisher(
 
     fun publishChatMessage(message: Component) = publish(sync().chat, PrefixesSubjects.CHAT) {
         ChatMessageEvent.newBuilder()
-            .setJson(serializer.serialize(message))
+            .setJson(ComponentSerialization.serialize(message))
             .build()
     }
 
     fun publishTablistEntry(entry: TablistEntry) = publish(sync().tablist, PrefixesSubjects.TABLIST_UPDATE) {
-        entry.toDefinition()
+        TablistEntryMapper.toDefinition(entry)
     }
 
     fun publishTablistRemove(uniqueId: UUID) = publish(sync().tablist, PrefixesSubjects.TABLIST_REMOVE) {

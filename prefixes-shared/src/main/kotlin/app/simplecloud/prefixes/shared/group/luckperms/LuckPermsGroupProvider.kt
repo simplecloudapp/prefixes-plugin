@@ -46,26 +46,26 @@ class LuckPermsGroupProvider(
             }
 
             luckPerms.groupManager.createAndLoadGroup(group.name).thenCompose { created ->
-                created.applyPrefixes(group)
+                applyPrefixes(created, group)
                 luckPerms.groupManager.saveGroup(created).thenApply { true }
             }
         }
     }
 
-    private fun Group.applyPrefixes(group: PrefixesGroup) {
-        data().add(WeightNode.builder(group.priority).build())
+    private fun applyPrefixes(target: Group, source: PrefixesGroup) {
+        target.data().add(WeightNode.builder(source.priority).build())
 
-        group.prefix?.let { miniMessage.serialize(it) }?.takeIf { it.isNotEmpty() }?.let {
-            data().add(PrefixNode.builder(it, group.priority).build())
+        source.prefix?.let { miniMessage.serialize(it) }?.takeIf { it.isNotEmpty() }?.let {
+            target.data().add(PrefixNode.builder(it, source.priority).build())
         }
-        group.suffix?.let { miniMessage.serialize(it) }?.takeIf { it.isNotEmpty() }?.let {
-            data().add(SuffixNode.builder(it, group.priority).build())
+        source.suffix?.let { miniMessage.serialize(it) }?.takeIf { it.isNotEmpty() }?.let {
+            target.data().add(SuffixNode.builder(it, source.priority).build())
         }
-        group.color?.let { "<${it.asHexString().uppercase()}>" }?.let {
-            data().add(MetaNode.builder("color", it).build())
+        source.color?.let { "<${it.asHexString().uppercase()}>" }?.let {
+            target.data().add(MetaNode.builder("color", it).build())
         }
 
-        data().add(MetaNode.builder("display-name", group.displayName).build())
-        data().add(MetaNode.builder("chat-format", group.chatFormat).build())
+        target.data().add(MetaNode.builder("display-name", source.displayName).build())
+        target.data().add(MetaNode.builder("chat-format", source.chatFormat).build())
     }
 }

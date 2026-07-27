@@ -47,20 +47,20 @@ class ConfigGroupProvider(
                     return@synchronized false
                 }
 
-                configFactory.save(config.copy(groups = config.groups + group.toConfigGroup()))
+                configFactory.save(config.copy(groups = config.groups + createConfigGroup(group)))
                 true
             }
         }
     }
 
-    private fun PrefixesGroup.toConfigGroup() = ConfigGroup(
-        name = name,
-        priority = priority,
-        permission = permission,
-        prefix = prefix?.let { miniMessage.serialize(it) } ?: "",
-        suffix = suffix?.let { miniMessage.serialize(it) } ?: "",
-        color = color?.let { "<${it.asHexString().uppercase()}>" } ?: "",
-        displayName = displayName,
-        chatFormat = chatFormat
+    private fun createConfigGroup(group: PrefixesGroup) = ConfigGroup(
+        name = group.name,
+        priority = group.priority,
+        permission = group.permission,
+        prefix = group.prefix?.let { miniMessage.serialize(it) } ?: "",
+        suffix = group.suffix?.let { miniMessage.serialize(it) } ?: "",
+        color = group.color?.let { "<${it.asHexString().uppercase()}>" } ?: "",
+        displayName = group.displayName,
+        chatFormat = group.chatFormat
     )
 }
