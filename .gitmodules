@@ -1,0 +1,3 @@
+[submodule "custom-names"]
+	path = custom-names
+	url = https://github.com/spacechunks/custom-names.git

@@ -14,7 +14,7 @@ paper = "26.2.build.+"
 
 adventure = "5.2.0"
 luckperms = "5.5"
-custom-names = "1.0.6"
+reflection-remapper = "0.1.3"
 
 cloud-command = "2.0.0"
 cloud-command-platform = "2.0.0-SNAPSHOT"
@@ -44,7 +44,7 @@ cloud-command-paper = { module = "org.incendo:cloud-paper", version.ref = "cloud
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
 
 luckperms-api = { module = "net.luckperms:api", version.ref = "luckperms" }
-custom-names-api = { module = "space.chunks.custom-names:custom-names-api", version.ref = "custom-names" }
+reflection-remapper = { module = "xyz.jpenilla:reflection-remapper", version.ref = "reflection-remapper" }
 
 configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
 configurate-kotlin = { module = "org.spongepowered:configurate-extra-kotlin", version.ref = "configurate" }

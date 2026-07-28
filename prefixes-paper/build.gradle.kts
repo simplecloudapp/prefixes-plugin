@@ -3,16 +3,36 @@ plugins {
     alias(libs.plugins.paperweight.userdev)
 }
 
+val customNamesRoot = rootProject.layout.projectDirectory.dir("custom-names")
+require(
+    customNamesRoot.dir("custom-names-api/src/main/kotlin").asFile.isDirectory &&
+        customNamesRoot.dir("custom-names-plugin/src/main/kotlin").asFile.isDirectory
+) {
+    "The custom-names submodule is missing. Run `git submodule update --init --recursive`."
+}
+
 dependencies {
     api(project(":prefixes-shared"))
     compileOnly(libs.paper.api)
-    compileOnly(libs.custom.names.api)
     implementation(libs.cloud.command.paper)
+    implementation(libs.reflection.remapper)
     paperweight.paperDevBundle(libs.versions.paper)
+}
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir(customNamesRoot.dir("custom-names-api/src/main/kotlin"))
+            srcDir(customNamesRoot.dir("custom-names-plugin/src/main/kotlin"))
+            exclude("**/CustomNamesPlugin.kt")
+        }
+    }
 }
 
 tasks.shadowJar {
     relocate("com.google.protobuf", "app.simplecloud.prefixes.libs.protobuf")
+    relocate("space.chunks.customname", "app.simplecloud.prefixes.libs.customname")
+    relocate("xyz.jpenilla.reflectionremapper", "app.simplecloud.prefixes.libs.reflectionremapper")
     exclude("org/bouncycastle/jcajce/io/DigestUpdatingOutputStream.class")
 }
 

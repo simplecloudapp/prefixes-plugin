@@ -63,6 +63,14 @@ implementation 'app.simplecloud.plugin:prefixes-api:VERSION'
 ## Contributing
 Contributions to SimpleCloud are welcome and highly appreciated. However, before you jump right into it, we would like you to read our [Contribution Guide][docs-contribute].
 
+Clone the repository with its pinned Custom Names source before building:
+
+```shell
+git clone --recurse-submodules https://github.com/simplecloudapp/prefixes-plugin.git
+cd prefixes-plugin
+bash ./gradlew build
+```
+
 ## License
 This repository is licensed under [Apache 2.0][license].
 

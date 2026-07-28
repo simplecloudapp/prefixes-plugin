@@ -14,7 +14,3 @@ dependencies:
       load: BEFORE
       required: false
       join-classpath: true
-    CustomNames:
-      load: BEFORE
-      required: true
-      join-classpath: true

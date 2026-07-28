@@ -15,15 +15,15 @@ import org.bukkit.plugin.ServicePriority
 import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.PaperCommandManager
-import space.chunks.customname.api.CustomNameManager
+import space.chunks.customname.plugin.CustomNameManagerImpl
 
 class PrefixesPaper : JavaPlugin() {
 
     private var prefixes: Prefixes? = null
 
     override fun onEnable() {
-        val customNameManager = Bukkit.getServicesManager().load(CustomNameManager::class.java)
-            ?: throw IllegalStateException("CustomNameManager not loaded yet!")
+        val customNameManager = CustomNameManagerImpl(this)
+        customNameManager.registerListeners()
 
         val platform = PaperPlatformImpl(this)
         val prefixes = Prefixes(platform)
