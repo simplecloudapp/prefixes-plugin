@@ -5,7 +5,7 @@ import app.simplecloud.prefixes.shared.config.PrefixesConfig
 import app.simplecloud.prefixes.shared.config.SyncTargets
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntryMapper
-import app.simplecloud.prefixes.shared.utilities.ComponentSerialization
+import app.simplecloud.prefixes.shared.utilities.ComponentSerializer
 import app.simplecloud.prefixes.shared.utilities.PrefixesSubjects
 import app.simplecloud.prefixes.v1.ChatMessageEvent
 import app.simplecloud.prefixes.v1.TablistEntryRemoveEvent
@@ -26,20 +26,8 @@ class SyncSubscriber(
 
     fun subscribeChatMessage(handler: (Component) -> Unit) {
         subscribe(sync().chat, PrefixesSubjects.CHAT) { message ->
-            handler(ComponentSerialization.deserialize(ChatMessageEvent.parseFrom(message.data).json))
+            handler(ComponentSerializer.deserialize(ChatMessageEvent.parseFrom(message.data).json))
         }
-    }
-
-    fun subscribeTablist(
-        onUpdate: (TablistEntry) -> Unit,
-        onRemove: (UUID) -> Unit,
-        onRequest: () -> Unit
-    ) {
-        subscribeTablist(
-            onUpdate = { _, entry -> onUpdate(entry) },
-            onRemove = { _, id -> onRemove(id) },
-            onRequest = onRequest
-        )
     }
 
     fun subscribeTablist(

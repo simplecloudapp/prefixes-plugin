@@ -1,6 +1,6 @@
 package app.simplecloud.prefixes.shared.sync.tablist
 
-import app.simplecloud.prefixes.shared.utilities.ComponentSerialization
+import app.simplecloud.prefixes.shared.utilities.ComponentSerializer
 import app.simplecloud.prefixes.v1.TablistEntryUpdateEvent
 import app.simplecloud.prefixes.v1.TablistGameMode as TablistGameModeDefinition
 import app.simplecloud.prefixes.v1.TablistProfileProperty
@@ -12,7 +12,7 @@ object TablistEntryMapper {
         TablistEntryUpdateEvent.newBuilder()
             .setPlayerId(entry.uniqueId.toString())
             .setPlayerName(entry.name)
-            .setDisplayName(ComponentSerialization.serialize(entry.displayName))
+            .setDisplayName(ComponentSerializer.serialize(entry.displayName))
             .setPriority(entry.priority)
             .addAllProfileProperties(entry.profileProperties.map(::toDefinition))
             .setLatency(entry.latency)
@@ -24,7 +24,7 @@ object TablistEntryMapper {
     fun fromDefinition(definition: TablistEntryUpdateEvent) = TablistEntry(
         uniqueId = UUID.fromString(definition.playerId),
         name = definition.playerName,
-        displayName = ComponentSerialization.deserialize(definition.displayName),
+        displayName = ComponentSerializer.deserialize(definition.displayName),
         priority = definition.priority,
         profileProperties = definition.profilePropertiesList.map(::fromDefinition),
         latency = definition.latency,

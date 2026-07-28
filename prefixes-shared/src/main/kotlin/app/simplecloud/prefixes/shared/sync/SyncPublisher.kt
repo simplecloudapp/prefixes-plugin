@@ -5,7 +5,7 @@ import app.simplecloud.prefixes.shared.config.PrefixesConfig
 import app.simplecloud.prefixes.shared.config.SyncTargets
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntryMapper
-import app.simplecloud.prefixes.shared.utilities.ComponentSerialization
+import app.simplecloud.prefixes.shared.utilities.ComponentSerializer
 import app.simplecloud.prefixes.shared.utilities.PrefixesSubjects
 import app.simplecloud.prefixes.v1.ChatMessageEvent
 import app.simplecloud.prefixes.v1.TablistEntryRemoveEvent
@@ -23,7 +23,7 @@ class SyncPublisher(
 
     fun publishChatMessage(message: Component) = publish(sync().chat, PrefixesSubjects.CHAT) {
         ChatMessageEvent.newBuilder()
-            .setJson(ComponentSerialization.serialize(message))
+            .setJson(ComponentSerializer.serialize(message))
             .build()
     }
 

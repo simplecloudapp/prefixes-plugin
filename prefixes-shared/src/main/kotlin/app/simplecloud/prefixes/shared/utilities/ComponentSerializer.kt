@@ -3,7 +3,7 @@ package app.simplecloud.prefixes.shared.utilities
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 
-object ComponentSerialization {
+object ComponentSerializer {
 
     private val serializer = GsonComponentSerializer.gson()
 
