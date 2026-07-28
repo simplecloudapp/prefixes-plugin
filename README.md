@@ -25,14 +25,16 @@
 
 > All information about this project can be found in our detailed [documentation][docs-thisproject].
 
-The Prefixes Plugin provides comprehensive rank management for chat and tab list displays. It integrates with LuckPerms by default but can be extended with custom implementations.
+The Prefixes Plugin provides comprehensive rank management for chat, tab list and name tag displays. Groups are either defined in the plugin config or read from LuckPerms, and within a SimpleCloud network chat messages and tab list entries can be synced across servers.
 
 ## Features
 
-- [x] **LuckPerms Integration**: The plugin automatically syncs with LuckPerms groups, converting them to prefix groups.
-- [x] **Supported Server Software**: Supports Paper, Spigot and Forks.
+- [x] **LuckPerms Integration**: Use the built-in config groups or let the plugin convert your LuckPerms groups into prefix groups.
+- [x] **Chat, Tab List & Name Tags**: Prefixes, suffixes, colors and display names are applied to chat messages, the tab list and player name tags.
+- [x] **Cross-Server Sync**: Share chat messages and tab list entries between all servers, selected server groups or persistent servers of your network.
+- [x] **MiniMessage Formats**: Prefixes, suffixes, display names and chat formats are fully customizable with placeholder support.
+- [x] **Supported Server Software**: Supports Paper and Forks.
 - [x] **Quick Setup**: Easy installation process for all supported software.
-- [x] **Placeholders**: Retrieve real-time information with dynamic placeholders.
 
 ## Dependency
 
@@ -71,8 +73,8 @@ This repository is licensed under [Apache 2.0][license].
 [banner]: https://github.com/simplecloudapp/branding/blob/main/readme/banner/plugin/prefixes.png?raw=true
 [issue-bug-report]: https://github.com/simplecloudapp/prefixes-plugin/issues/new?labels=bug&projects=template=01_BUG-REPORT.yml&title=%5BBUG%5D+%3Ctitle%3E
 [issue-feature-request]: https://github.com/simplecloudapp/prefixes-plugin/discussions/new?category=ideas
-[docs-thisproject]: https://docs.simplecloud.app/en/manual/plugin/prefixes
-[docs-contribute]: https://docs.simplecloud.app/contribute
+[docs-thisproject]: https://simplecloud.app/docs/en/manual/plugin/prefixes
+[docs-contribute]: https://simplecloud.app/docs/contribute
 
 [modrinth]: https://modrinth.com/organization/simplecloud
 [dev]: https://repo.simplecloud.app/#/snapshots/app/simplecloud/plugin/prefixes
@@ -80,7 +82,7 @@ This repository is licensed under [Apache 2.0][license].
 [artifacts]: https://repo.simplecloud.app/#/snapshots/app/simplecloud/plugin/prefixes
 [dev-artifacts]: https://repo.simplecloud.app/#/snapshots/app/simplecloud/plugin/prefixes
 
-[badge-dev]: https://repo.simplecloud.app/api/badge/latest/snapshots/app/simplecloud/plugin/prefixes-shared?name=Dev&style=flat-square&color=0ea5e9
+[badge-dev]: https://repo.simplecloud.app/api/badge/latest/snapshots/app/simplecloud/plugin/prefixes-api?name=Dev&style=flat-square&color=0ea5e9
 
 <!-- ⛔ DON'T TOUCH -->
 [license]: ./LICENSE
