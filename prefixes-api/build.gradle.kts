@@ -1,3 +1,3 @@
 dependencies {
-    api(project(":prefixes-shared"))
+    api(libs.bundles.adventure)
 }

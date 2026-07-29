@@ -1,15 +1,16 @@
-name: Prefixes
-version: 1.1
-main: app.simplecloud.plugin.prefixes.paper.PrefixesPlugin
-api-version: 1.21.4
+name: simplecloud-prefixes
+version: ${version}
+api-version: 26.2
+
+main: app.simplecloud.prefixes.paper.PrefixesPaper
+
 dependencies:
   server:
-    LuckPerms:
-      load: BEFORE
-      required: true
-    CustomNames:
+    simplecloud-api:
       load: BEFORE
       required: true
       join-classpath: true
-authors:
-  - dayyeeet
+    LuckPerms:
+      load: BEFORE
+      required: false
+      join-classpath: true

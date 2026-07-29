@@ -1,43 +1,67 @@
 [versions]
-kotlin = "2.2.20"
+kotlin = "2.4.10"
+kotlinx-coroutines = "1.11.0"
 
-paper-api = "1.21.11-R0.1-SNAPSHOT"
-luckperms-api = "5.5"
-custom-names-api = "1.0.6"
+shadow = "9.5.1"
+minotaur = "2.9.0"
+paperweight = "2.0.0-beta.21"
+protobuf = "0.10.0"
 
-adventure = "4.26.1"
+simplecloud-api = "0.1.0-platform.40"
+simplecloud-plugin-api = "0.0.1-platform.1778966459069-b1e45e2"
 
-minestom-ce-snapshots = "1_20_2-e7f833b499"
-minestom-ce-extensions = "1.2.0"
+paper = "26.2.build.+"
 
-gson = "2.13.2"
+adventure = "5.2.0"
+luckperms = "5.5"
+reflection-remapper = "0.1.3"
 
-paperweight = "2.0.0-beta.19"
-minotaur = "2.8.10"
-shadow = "9.3.1"
-sonatype-central-portal-publisher = "1.2.4"
+cloud-command = "2.0.0"
+cloud-command-platform = "2.0.0-SNAPSHOT"
+
+configurate = "4.2.0"
+
+protoc = "4.35.1"
+protobuf-kotlin = "4.35.1"
+
+jnats = "2.26.0"
 
 [libraries]
-kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 
-paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
-luckperms-api = { module = "net.luckperms:api", version.ref = "luckperms-api" }
-custom-names-api = { module = "space.chunks.custom-names:custom-names-api", version.ref = "custom-names-api" }
+simplecloud-api = { module = "app.simplecloud.api:api", version.ref = "simplecloud-api" }
+simplecloud-plugin-api = { module = "app.simplecloud.plugin:plugin-shared", version.ref = "simplecloud-plugin-api" }
 
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
 adventure-text-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
 adventure-text-serializer-gson = { module = "net.kyori:adventure-text-serializer-gson", version.ref = "adventure" }
-adventure-text-serializer-legacy = { module = "net.kyori:adventure-text-serializer-legacy", version.ref = "adventure" }
 
-gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+cloud-command-core = { module = "org.incendo:cloud-core", version.ref = "cloud-command" }
+cloud-command-coroutines = { module = "org.incendo:cloud-kotlin-coroutines", version.ref = "cloud-command" }
+cloud-command-paper = { module = "org.incendo:cloud-paper", version.ref = "cloud-command-platform" }
 
-minestom-ce-snapshots = { module = "dev.hollowcube:minestom-ce-snapshots", version.ref = "minestom-ce-snapshots" }
-minestom-ce-extensions = { module = "dev.hollowcube:minestom-ce-extensions", version.ref = "minestom-ce-extensions" }
+paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
+
+luckperms-api = { module = "net.luckperms:api", version.ref = "luckperms" }
+reflection-remapper = { module = "xyz.jpenilla:reflection-remapper", version.ref = "reflection-remapper" }
+
+configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
+configurate-kotlin = { module = "org.spongepowered:configurate-extra-kotlin", version.ref = "configurate" }
+
+protoc = { module = "com.google.protobuf:protoc", version.ref = "protoc" }
+protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf-kotlin" }
+
+jnats = { module = "io.nats:jnats", version.ref = "jnats" }
+
+[bundles]
+configurate = ["configurate-kotlin", "configurate-yaml"]
+adventure = ["adventure-api", "adventure-text-minimessage", "adventure-text-serializer-gson"]
+cloud-command = ["cloud-command-core", "cloud-command-coroutines"]
 
 [plugins]
-paperweight-userdev = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
-sonatype-central-portal-publisher = { id = "net.thebugmc.gradle.sonatype-central-portal-publisher", version.ref = "sonatype-central-portal-publisher" }
+paperweight-userdev = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }
