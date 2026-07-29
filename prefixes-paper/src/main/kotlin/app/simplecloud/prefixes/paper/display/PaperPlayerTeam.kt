@@ -15,12 +15,13 @@ class PaperPlayerTeam(
     priority: Int,
     prefix: Component = Component.empty(),
     suffix: Component = Component.empty(),
-    color: TextColor = NamedTextColor.WHITE
+    color: TextColor = NamedTextColor.WHITE,
+    hideNameTag: Boolean = true
 ) : PlayerTeam(Scoreboard(), "${PriorityFormatter.format(priority)}_$name") {
 
     init {
         players.add(name)
-        nameTagVisibility = Visibility.NEVER
+        nameTagVisibility = if (hideNameTag) Visibility.NEVER else Visibility.ALWAYS
         this.color = Optional.of(TeamColor.valueOf(NamedTextColor.nearestTo(color).toString().uppercase()))
 
         setPlayerPrefix(PaperAdventure.asVanilla(prefix))

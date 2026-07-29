@@ -23,6 +23,7 @@ class PaperDisplayManager(
     private val customNameManager: CustomNameManager
 ) {
     private val cache = ConcurrentHashMap<UUID, PrefixesPlayerData>()
+    private val playerTeams = ConcurrentHashMap<UUID, PaperPlayerTeam>()
     private val publishedEntries = ConcurrentHashMap<UUID, TablistEntry>()
 
     fun getPlayer(id: UUID): PrefixesPlayerData? {
@@ -44,16 +45,49 @@ class PaperDisplayManager(
                 if (!player.isOnline) return@Runnable
                 cache[player.uniqueId] = data
 
-                val tablistName = PlayerDisplayFormatter.formatTablistName(data)
-                player.playerListName(tablistName)
+                val features = prefixes.config.get().features
+                val displayName = PlayerDisplayFormatter.displayName(
+                    data,
+                    player.name,
+                    features.displayName
+                )
 
-                val team = PaperPlayerTeam(player.name, data.priority, data.prefix, data.suffix, data.color)
-                broadcast(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true))
+                if (features.tablist) {
+                    player.playerListName(PlayerDisplayFormatter.formatTablistName(data, displayName))
+                } else {
+                    player.playerListName(null)
+                }
+
+                playerTeams.remove(player.uniqueId)?.let { previous ->
+                    broadcast(ClientboundSetPlayerTeamPacket.createRemovePacket(previous))
+                }
+
+                val team = when {
+                    features.tablist -> PaperPlayerTeam(
+                        player.name,
+                        data.priority,
+                        data.prefix,
+                        data.suffix,
+                        data.color,
+                        hideNameTag = features.displayName
+                    )
+                    features.displayName -> PaperPlayerTeam(player.name, priority = 0)
+                    else -> null
+                }
+                team?.let {
+                    playerTeams[player.uniqueId] = it
+                    broadcast(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(it, true))
+                }
 
                 val name = customNameManager.forEntity(player)
-                name.setName(data.displayName)
+                if (features.displayName) {
+                    name.setName(displayName)
+                    name.setHidden(false)
+                } else {
+                    name.setHidden(true)
+                }
 
-                publish(player, data)
+                publish(player, data, displayName)
             })
         }.exceptionally { _ ->
             plugin.logger.warning("Failed to update prefix data of ${player.name}")
@@ -62,8 +96,8 @@ class PaperDisplayManager(
     }
 
     fun removePlayer(player: Player) {
-        cache.remove(player.uniqueId)?.let { data ->
-            val team = PaperPlayerTeam(player.name, data.priority, data.prefix, data.suffix, data.color)
+        cache.remove(player.uniqueId)
+        playerTeams.remove(player.uniqueId)?.let { team ->
             broadcast(ClientboundSetPlayerTeamPacket.createRemovePacket(team))
         }
 
@@ -74,9 +108,7 @@ class PaperDisplayManager(
     fun syncPlayers(player: Player) {
         val connection = (player as CraftPlayer).handle.connection
 
-        Bukkit.getOnlinePlayers().forEach { player ->
-            val data = cache[player.uniqueId] ?: return@forEach
-            val team = PaperPlayerTeam(player.name, data.priority, data.prefix, data.suffix, data.color)
+        playerTeams.values.forEach { team ->
             connection.send(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true))
         }
     }
@@ -84,16 +116,28 @@ class PaperDisplayManager(
     fun sync(force: Boolean = false) {
         Bukkit.getOnlinePlayers().forEach { player ->
             val data = cache[player.uniqueId] ?: return@forEach
-            publish(player, data, force)
+            val features = prefixes.config.get().features
+            val displayName = PlayerDisplayFormatter.displayName(
+                data,
+                player.name,
+                features.displayName
+            )
+            publish(player, data, displayName, force)
         }
     }
 
-    private fun publish(player: Player, data: PrefixesPlayerData, force: Boolean = false) {
-        publish(player, PlayerDisplayFormatter.formatTablistName(data), data.priority, force)
+    private fun publish(
+        player: Player,
+        data: PrefixesPlayerData,
+        displayName: Component,
+        force: Boolean = false
+    ) {
+        publish(player, PlayerDisplayFormatter.formatTablistName(data, displayName), data.priority, force)
     }
 
     private fun publish(player: Player, displayName: Component, priority: Int, force: Boolean = false) {
-        if (!prefixes.config.get().general.sync.tablist.enabled) return
+        val config = prefixes.config.get()
+        if (!config.features.tablist || !config.sync.enabled || !config.sync.channels.tablist) return
         val publisher = prefixes.sync?.publisher ?: return
         val profileProperties = player.playerProfile.properties.map { property ->
             ProfileProperty(property.name, property.value, property.signature)

@@ -3,6 +3,7 @@ package app.simplecloud.prefixes.shared
 import app.simplecloud.prefixes.api.PrefixesApi
 import app.simplecloud.prefixes.api.PrefixesApiProvider
 import app.simplecloud.prefixes.shared.api.PrefixesApiImpl
+import app.simplecloud.prefixes.shared.config.DefaultConfigInstaller
 import app.simplecloud.prefixes.shared.config.MessageConfig
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
 import app.simplecloud.prefixes.shared.config.SourceType
@@ -15,7 +16,13 @@ import java.io.File
 
 class Prefixes(private val platform: PrefixesPlatform) {
 
-    val config = ConfigurationFactory(File(platform.dataDirectory, "config.yml"), PrefixesConfig::class.java)
+    private val configFile = File(platform.dataDirectory, "config.yml").also { file ->
+        DefaultConfigInstaller.install(file.toPath(), javaClass.classLoader)
+    }
+    val config = ConfigurationFactory(
+        configFile,
+        PrefixesConfig::class.java
+    )
     val messages = ConfigurationFactory(File(platform.dataDirectory, "messages.yml"), MessageConfig::class.java)
 
     init {
@@ -56,8 +63,14 @@ class Prefixes(private val platform: PrefixesPlatform) {
         platform.playerResolver
     )
 
-    private fun createSync(): PrefixesSync? = config.get().general.sync
-        .takeIf { it.chat.enabled || it.tablist.enabled }
+    private fun createSync(): PrefixesSync? = config.get()
+        .takeIf { config ->
+            config.sync.enabled &&
+                (
+                    config.features.chat && config.sync.channels.chat ||
+                        config.features.tablist && config.sync.channels.tablist
+                )
+        }
         ?.let { PrefixesSync(config) }
 
 }

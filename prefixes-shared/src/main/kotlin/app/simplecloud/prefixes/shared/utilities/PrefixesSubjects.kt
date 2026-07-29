@@ -1,11 +1,12 @@
 package app.simplecloud.prefixes.shared.utilities
 
 import app.simplecloud.api.runtime.SimpleCloudRuntime
-import app.simplecloud.prefixes.shared.config.SyncTargets
+import app.simplecloud.prefixes.shared.config.ALL_SYNC_SOURCE
+import app.simplecloud.prefixes.shared.config.CURRENT_SYNC_SOURCE
 
 class PrefixesSubjects(
     networkId: String,
-    origin: String = SimpleCloudRuntime.groupName().ifBlank { SimpleCloudRuntime.serverId() },
+    private val origin: String = SimpleCloudRuntime.groupName().ifBlank { SimpleCloudRuntime.serverId() },
     serverId: String = SimpleCloudRuntime.serverId()
 ) {
 
@@ -18,9 +19,22 @@ class PrefixesSubjects(
 
     fun publisherId(subject: String, event: String): String = subject.removeSuffix(".$event")
 
-    fun patterns(targets: SyncTargets, subject: String): List<String> {
-        if (targets.allServers) return listOf("$root.*.*.$subject")
-        return (targets.serverGroups + targets.persistentServers).map { "$root.$it.*.$subject" }
+    fun patterns(sources: List<String>, subject: String): List<String> {
+        val resolvedSources = sources
+            .asSequence()
+            .map(String::trim)
+            .filter(String::isNotEmpty)
+            .distinct()
+            .toList()
+
+        if (ALL_SYNC_SOURCE in resolvedSources) {
+            return listOf("$root.*.*.$subject")
+        }
+
+        return resolvedSources
+            .map { source -> if (source == CURRENT_SYNC_SOURCE) origin else source }
+            .distinct()
+            .map { source -> "$root.$source.*.$subject" }
     }
 
     companion object {

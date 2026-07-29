@@ -9,14 +9,15 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 data class PrefixesConfig(
     override val version: Int = ConfigVersion.VERSION,
     val general: GeneralConfig = GeneralConfig(),
+    val features: FeaturesConfig = FeaturesConfig(),
+    val sync: SyncConfig = SyncConfig(),
     val groups: List<ConfigGroup> = DefaultConfigs.GROUPS
 ) : VersionedConfig
 
 @ConfigSerializable
 data class GeneralConfig(
     val source: SourceType = SourceType.CONFIG,
-    val defaultGroup: String = "default",
-    val sync: SyncConfig = SyncConfig()
+    val defaultGroup: String = "default"
 )
 
 enum class SourceType {
@@ -25,17 +26,23 @@ enum class SourceType {
 }
 
 @ConfigSerializable
-data class SyncConfig(
-    val tablist: SyncTargets = SyncTargets(),
-    val chat: SyncTargets = SyncTargets()
+data class FeaturesConfig(
+    val chat: Boolean = true,
+    val tablist: Boolean = true,
+    val displayName: Boolean = true
 )
 
 @ConfigSerializable
-data class SyncTargets(
+data class SyncConfig(
     val enabled: Boolean = true,
-    val allServers: Boolean = true,
-    val serverGroups: List<String> = emptyList(),
-    val persistentServers: List<String> = emptyList()
+    val channels: SyncChannels = SyncChannels(),
+    val sources: List<String> = listOf(CURRENT_SYNC_SOURCE)
+)
+
+@ConfigSerializable
+data class SyncChannels(
+    val chat: Boolean = true,
+    val tablist: Boolean = true
 )
 
 @ConfigSerializable
@@ -49,3 +56,6 @@ data class ConfigGroup(
     val displayName: String = "",
     val chatFormat: String = ""
 )
+
+const val CURRENT_SYNC_SOURCE = "CURRENT"
+const val ALL_SYNC_SOURCE = "ALL"

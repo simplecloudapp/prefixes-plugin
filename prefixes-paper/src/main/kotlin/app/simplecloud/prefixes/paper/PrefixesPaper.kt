@@ -36,19 +36,25 @@ class PrefixesPaper : JavaPlugin() {
 
         val manager = PaperDisplayManager(this, prefixes, customNameManager)
         val tablist = PaperTablist()
-        Bukkit.getPluginManager().registerEvents(PlayerListener(manager, tablist, prefixes.sync?.publisher), this)
+        Bukkit.getPluginManager().registerEvents(
+            PlayerListener(prefixes, manager, tablist, prefixes.sync?.publisher),
+            this
+        )
 
-        // Apply chat and tablist updates of the configured sync targets.
+        // Apply chat and tablist updates from the configured sync sources.
         prefixes.sync?.let { sync ->
-            sync.subscriber.subscribeChatMessage { message -> Bukkit.getServer().sendMessage(message) }
-            sync.subscriber.subscribeTablist(
-                onUpdate = tablist::update,
-                onRemove = tablist::remove,
-                onRequest = { manager.sync(force = true) }
-            )
-            sync.publisher.publishTablistRequest()
+            val config = prefixes.config.get()
+            if (config.features.chat && config.sync.channels.chat) {
+                sync.subscriber.subscribeChatMessage { message -> Bukkit.getServer().sendMessage(message) }
+            }
+            if (config.features.tablist && config.sync.channels.tablist) {
+                sync.subscriber.subscribeTablist(
+                    onUpdate = tablist::update,
+                    onRemove = tablist::remove,
+                    onRequest = { manager.sync(force = true) }
+                )
+                sync.publisher.publishTablistRequest()
 
-            if (prefixes.config.get().general.sync.tablist.enabled) {
                 Bukkit.getScheduler().runTaskTimer(this, Runnable { manager.sync() }, 600L, 600L)
             }
         }
@@ -68,8 +74,15 @@ class PrefixesPaper : JavaPlugin() {
 
         // Refresh all online players on reload.
         prefixes.onReload = {
+            val config = prefixes.config.get()
             Bukkit.getOnlinePlayers().forEach { player ->
                 manager.updatePlayer(player)
+            }
+
+            if (!config.features.tablist || !config.sync.enabled || !config.sync.channels.tablist) {
+                tablist.clear()
+            } else {
+                prefixes.sync?.publisher?.publishTablistRequest()
             }
         }
 

@@ -48,6 +48,10 @@ class PaperTablist {
         removeEntry(publisherId, id)
     }
 
+    fun clear() {
+        entries.keys.toList().forEach(::remove)
+    }
+
     private fun removeEntry(publisherId: String?, id: UUID) {
         val sourcedEntry = entries[id] ?: return
         if (publisherId != null && sourcedEntry.publisherId != publisherId) return
