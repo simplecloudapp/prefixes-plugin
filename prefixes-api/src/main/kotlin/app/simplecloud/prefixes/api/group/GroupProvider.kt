@@ -19,10 +19,10 @@ interface GroupProvider {
     fun getGroups(): Collection<PrefixesGroup>
 
     /**
-     * Gets the primary group of a player.
+     * Gets the highest-priority applicable group of a player.
      *
      * @param id The player's UUID
-     * @return A future completing with the player's group, or null if none matches.
+     * @return A future completing with the player's highest-priority group, or null if none matches.
      */
     fun getGroup(id: UUID): CompletableFuture<PrefixesGroup?>
 

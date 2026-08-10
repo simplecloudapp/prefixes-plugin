@@ -5,6 +5,7 @@ import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.api.group.PrefixesGroup
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.model.group.Group
+import net.luckperms.api.model.user.User
 import net.luckperms.api.node.types.MetaNode
 import net.luckperms.api.node.types.PrefixNode
 import net.luckperms.api.node.types.SuffixNode
@@ -27,16 +28,10 @@ class LuckPermsGroupProvider(
     override fun getGroup(id: UUID): CompletableFuture<PrefixesGroup?> {
         val user = luckPerms.userManager.getUser(id)
         if (user != null) {
-            val primaryGroup = user.primaryGroup
-            val group = luckPerms.groupManager.getGroup(primaryGroup)
-            return CompletableFuture.completedFuture(group?.let { LuckPermsGroup(it, luckPerms) })
+            return CompletableFuture.completedFuture(resolveGroup(user))
         }
 
-        return luckPerms.userManager.loadUser(id).thenApply { loadedUser ->
-            val primaryGroup = loadedUser.primaryGroup
-            val group = luckPerms.groupManager.getGroup(primaryGroup) ?: return@thenApply null
-            LuckPermsGroup(group, luckPerms)
-        }
+        return luckPerms.userManager.loadUser(id).thenApply(::resolveGroup)
     }
 
     override fun addGroup(group: PrefixesGroup): CompletableFuture<Boolean> {
@@ -68,4 +63,25 @@ class LuckPermsGroupProvider(
         target.data().add(MetaNode.builder("display-name", source.displayName).build())
         target.data().add(MetaNode.builder("chat-format", source.chatFormat).build())
     }
+
+    private fun resolveGroup(user: User): PrefixesGroup? {
+        val primaryGroupName = user.primaryGroup
+        val inheritedGroups = user.getInheritedGroups(user.queryOptions)
+        val primaryGroup = luckPerms.groupManager.getGroup(primaryGroupName)
+        val candidates = if (primaryGroup == null) inheritedGroups else inheritedGroups + primaryGroup
+
+        return selectHighestWeightedGroup(candidates, primaryGroupName)
+            ?.let { LuckPermsGroup(it, luckPerms) }
+    }
+}
+
+internal fun selectHighestWeightedGroup(groups: Iterable<Group>, primaryGroupName: String): Group? {
+    return groups
+        .distinctBy { it.name }
+        .sortedWith(
+            compareByDescending<Group> { it.weight.orElse(0) }
+                .thenByDescending { it.name == primaryGroupName }
+                .thenBy { it.name }
+        )
+        .firstOrNull()
 }

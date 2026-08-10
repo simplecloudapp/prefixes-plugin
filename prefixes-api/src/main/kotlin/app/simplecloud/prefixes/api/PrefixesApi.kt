@@ -16,7 +16,7 @@ interface PrefixesApi {
     fun getGroups(): Collection<PrefixesGroup>
 
     /**
-     * Returns the primary [PrefixesGroup] of a player.
+     * Returns the highest-priority applicable [PrefixesGroup] of a player.
      * @param id Target player UUID
      */
     fun getPrimaryGroup(id: UUID): CompletableFuture<PrefixesGroup?>
