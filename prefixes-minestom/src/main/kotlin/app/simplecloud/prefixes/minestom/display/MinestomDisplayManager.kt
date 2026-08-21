@@ -77,9 +77,6 @@ class MinestomDisplayManager(
         nameTags.keys.toList().forEach(::removeNameTag)
     }
 
-    /**
-     * Publishes the tab list entries of all players to the network.
-     */
     fun sync(force: Boolean = false) {
         MinecraftServer.getConnectionManager().onlinePlayers.forEach { player ->
             val data = cache[player.uuid] ?: return@forEach

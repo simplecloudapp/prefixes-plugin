@@ -18,9 +18,6 @@ class MinestomNameTag(private val player: Player) {
             meta.width = WIDTH
             meta.height = HEIGHT
             meta.isInvisible = true
-
-            // Any pose but SNEAKING, so that the sneaking flag only fades the name
-            // instead of also crouching the entity. This is what vanilla name tags do.
             meta.pose = EntityPose.CROAKING
         }
     }
