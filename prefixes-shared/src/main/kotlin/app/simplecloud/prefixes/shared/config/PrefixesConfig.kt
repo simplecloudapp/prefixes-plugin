@@ -16,14 +16,9 @@ data class PrefixesConfig(
 
 @ConfigSerializable
 data class GeneralConfig(
-    val source: SourceType = SourceType.CONFIG,
+    val source: String = CONFIG_SOURCE,
     val defaultGroup: String = "default"
 )
-
-enum class SourceType {
-    CONFIG,
-    LUCKPERMS
-}
 
 @ConfigSerializable
 data class FeaturesConfig(
@@ -56,6 +51,9 @@ data class ConfigGroup(
     val displayName: String = "",
     val chatFormat: String = ""
 )
+
+const val CONFIG_SOURCE = "config"
+const val LUCKPERMS_SOURCE = "luckperms"
 
 const val CURRENT_SYNC_SOURCE = "CURRENT"
 const val ALL_SYNC_SOURCE = "ALL"

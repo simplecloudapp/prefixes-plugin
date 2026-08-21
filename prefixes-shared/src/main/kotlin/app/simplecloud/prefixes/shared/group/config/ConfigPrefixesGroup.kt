@@ -14,6 +14,7 @@ class ConfigPrefixesGroup(
     private val group: ConfigGroup,
     private val permissionChecker: PermissionChecker<UUID>
 ) : PrefixesGroup {
+
     override val name: String = group.name
     override val priority: Int = group.priority
     override val permission: String = group.permission
@@ -23,13 +24,20 @@ class ConfigPrefixesGroup(
     override val displayName: String = group.displayName
     override val chatFormat: String = group.chatFormat
 
+    @Deprecated(
+        message = "Blocks the calling thread until the lookup finished.",
+        replaceWith = ReplaceWith("containsPlayerAsync(id)")
+    )
     override fun containsPlayer(id: UUID): Boolean {
-        if (permission.isEmpty()) return true // Default group matches everyone
-        return permissionChecker.checkPermission(id, permission)
+        return hasPermission(id)
     }
 
     override fun containsPlayerAsync(id: UUID): CompletableFuture<Boolean> {
-        return CompletableFuture.supplyAsync { containsPlayer(id) }
+        return CompletableFuture.supplyAsync { hasPermission(id) }
     }
 
+    fun hasPermission(id: UUID): Boolean {
+        if (permission.isEmpty()) return true // Default group matches everyone
+        return permissionChecker.checkPermission(id, permission)
+    }
 }

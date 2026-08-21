@@ -6,11 +6,11 @@ import app.simplecloud.prefixes.paper.display.PaperDisplayManager
 import app.simplecloud.prefixes.paper.display.PaperTablist
 import app.simplecloud.prefixes.paper.listener.LuckPermsListener
 import app.simplecloud.prefixes.paper.listener.PlayerListener
-import app.simplecloud.prefixes.paper.platform.PaperReloadListener
 import app.simplecloud.prefixes.paper.platform.PaperPlatformImpl
+import app.simplecloud.prefixes.paper.platform.PaperPrefixesListener
 import app.simplecloud.prefixes.shared.Prefixes
 import app.simplecloud.prefixes.shared.command.PrefixesCommand
-import app.simplecloud.prefixes.shared.config.SourceType
+import app.simplecloud.prefixes.shared.config.LUCKPERMS_SOURCE
 import app.simplecloud.prefixes.shared.platform.PrefixesPlatform
 import org.bukkit.Bukkit
 import org.bukkit.plugin.ServicePriority
@@ -43,8 +43,8 @@ class PrefixesPaper : JavaPlugin() {
         registerSync(prefixes, manager, tablist)
         registerLuckPermsListener(prefixes, platform, manager)
 
-        // Refresh all online players on reload.
-        prefixes.addReloadListener(PaperReloadListener(prefixes, manager, tablist))
+        // Refresh players on reload and on updates requested from the api.
+        prefixes.addListener(PaperPrefixesListener(prefixes, manager, tablist))
 
         registerCommands(prefixes)
     }
@@ -81,12 +81,12 @@ class PrefixesPaper : JavaPlugin() {
 
     private fun registerLuckPermsListener(prefixes: Prefixes, platform: PrefixesPlatform, manager: PaperDisplayManager) {
         val source = prefixes.config.get().general.source
-        logger.info("Using Source Type: ${source.name}")
-        if (source != SourceType.LUCKPERMS) return
+        logger.info("Using Source Type: $source")
+        if (!source.equals(LUCKPERMS_SOURCE, ignoreCase = true)) return
 
         val luckPerms = platform.getLuckPerms()
         if (luckPerms == null) {
-            logger.warning("Source Type is set to LUCKPERMS, but LuckPerms was not found on the server!")
+            logger.warning("Source Type is set to $LUCKPERMS_SOURCE, but LuckPerms was not found on the server!")
             return
         }
 

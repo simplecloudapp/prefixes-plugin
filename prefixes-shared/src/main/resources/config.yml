@@ -7,11 +7,12 @@ version: 1
 # ─────────────────────────────────────────────────────────────────────────────
 general:
   # Where groups are read from.
-  # Available: CONFIG, LUCKPERMS
-  source: CONFIG
+  # Available: config, luckperms, or the name of a provider registered by another plugin.
+  # Unknown values fall back to config.
+  source: config
 
   # Group used when a player matches no other group.
-  # Must reference a group defined below when source is CONFIG.
+  # Must reference a group defined below when source is config.
   default-group: default
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -57,7 +58,7 @@ sync:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Groups
-# Only used when general.source is CONFIG.
+# Only used when general.source is config.
 #
 # Supported placeholders:
 #   <prefix>       Group prefix

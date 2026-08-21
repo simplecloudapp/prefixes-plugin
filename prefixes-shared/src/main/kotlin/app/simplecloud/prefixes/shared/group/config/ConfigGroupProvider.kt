@@ -5,6 +5,7 @@ import app.simplecloud.plugin.api.shared.extension.miniMessage
 import app.simplecloud.plugin.api.shared.permission.PermissionChecker
 import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.api.group.PrefixesGroup
+import app.simplecloud.prefixes.shared.config.CONFIG_SOURCE
 import app.simplecloud.prefixes.shared.config.ConfigGroup
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
 import app.simplecloud.prefixes.shared.utilities.ColorParser
@@ -17,23 +18,20 @@ class ConfigGroupProvider(
     private val permissionChecker: PermissionChecker<UUID>
 ) : GroupProvider {
 
-    override val name: String = "Config"
+    override val name: String = CONFIG_SOURCE
 
-    override fun getGroups(): Collection<PrefixesGroup> {
-        val config = configFactory.get()
-        return config.groups
-            .map { ConfigPrefixesGroup(it, permissionChecker) }
-            .sortedByDescending { it.priority }
+    override fun getGroups(): CompletableFuture<Collection<PrefixesGroup>> {
+        return CompletableFuture.completedFuture(loadGroups())
     }
 
     override fun getGroup(id: UUID): CompletableFuture<PrefixesGroup?> {
         return CompletableFuture.supplyAsync {
-            val groups = getGroups()
+            val groups = loadGroups()
             val config = configFactory.get()
 
             // Check if player has permission for any group, highest priority first.
             val group = groups.firstOrNull {
-                it.name != config.general.defaultGroup && it.containsPlayer(id)
+                it.name != config.general.defaultGroup && it.hasPermission(id)
             }
 
             // Fallback to the default group if no group matched.
@@ -53,6 +51,12 @@ class ConfigGroupProvider(
                 true
             }
         }
+    }
+
+    private fun loadGroups(): List<ConfigPrefixesGroup> {
+        return configFactory.get().groups
+            .map { ConfigPrefixesGroup(it, permissionChecker) }
+            .sortedByDescending { it.priority }
     }
 
     private fun createConfigGroup(group: PrefixesGroup) = ConfigGroup(

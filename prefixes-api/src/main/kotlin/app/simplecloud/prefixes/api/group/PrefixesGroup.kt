@@ -56,6 +56,10 @@ interface PrefixesGroup {
      * @param id the UUID of the player
      * @return `true` if the player belongs to this group, otherwise `false`
      */
+    @Deprecated(
+        message = "Blocks the calling thread until the lookup finished.",
+        replaceWith = ReplaceWith("containsPlayerAsync(id)")
+    )
     fun containsPlayer(id: UUID): Boolean
 
     /**

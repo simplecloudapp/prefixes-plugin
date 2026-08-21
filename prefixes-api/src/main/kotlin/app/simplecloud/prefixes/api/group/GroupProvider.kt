@@ -16,7 +16,7 @@ interface GroupProvider {
     /**
      * Returns all registered prefix groups.
      */
-    fun getGroups(): Collection<PrefixesGroup>
+    fun getGroups(): CompletableFuture<Collection<PrefixesGroup>>
 
     /**
      * Gets the highest-priority applicable group of a player.

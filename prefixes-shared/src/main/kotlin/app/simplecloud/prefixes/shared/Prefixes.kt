@@ -10,8 +10,8 @@ import app.simplecloud.prefixes.shared.config.PrefixesConfig
 import app.simplecloud.prefixes.shared.group.GroupProviders
 import app.simplecloud.prefixes.shared.group.config.ConfigGroupProvider
 import app.simplecloud.prefixes.shared.group.luckperms.LuckPermsGroupProvider
+import app.simplecloud.prefixes.shared.platform.PrefixesListener
 import app.simplecloud.prefixes.shared.platform.PrefixesPlatform
-import app.simplecloud.prefixes.shared.platform.PrefixesReloadListener
 import app.simplecloud.prefixes.shared.sync.PrefixesSync
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
@@ -30,9 +30,11 @@ class Prefixes(private val platform: PrefixesPlatform) {
         messages.loadOrCreate(MessageConfig())
     }
 
-    private val listeners = CopyOnWriteArrayList<PrefixesReloadListener>()
+    private val listeners = CopyOnWriteArrayList<PrefixesListener>()
 
-    val api: PrefixesApi = PrefixesApiImpl(createGroupProviders(), platform)
+    val providers = createGroupProviders()
+
+    val api: PrefixesApi = PrefixesApiImpl(providers, listeners, platform)
     val sync = createSync()
 
     fun startup() {
@@ -44,7 +46,7 @@ class Prefixes(private val platform: PrefixesPlatform) {
         sync?.shutdown()
     }
 
-    fun addReloadListener(listener: PrefixesReloadListener) {
+    fun addListener(listener: PrefixesListener) {
         listeners.add(listener)
     }
 
@@ -53,7 +55,7 @@ class Prefixes(private val platform: PrefixesPlatform) {
             logger.info("Reloading simplecloud prefixes...")
             config.reload()
             messages.reload()
-            listeners.forEach(PrefixesReloadListener::onReload)
+            listeners.forEach(PrefixesListener::onReload)
         }.onSuccess {
             logger.info("Succesfully reloaded simplecloud prefixes")
         }.onFailure { throwable ->
@@ -68,16 +70,14 @@ class Prefixes(private val platform: PrefixesPlatform) {
     }
 
     private fun createGroupProviders(): GroupProviders {
-        return GroupProviders(
-            config,
-            ConfigGroupProvider(config, platform.getPermissionChecker()),
-            createLuckPermsProvider()
-        )
-    }
+        val providers = GroupProviders(config, ConfigGroupProvider(config, platform.getPermissionChecker()))
 
-    private fun createLuckPermsProvider(): LuckPermsGroupProvider? {
-        val luckPerms = platform.getLuckPerms() ?: return null
-        return LuckPermsGroupProvider(luckPerms)
+        val luckPerms = platform.getLuckPerms()
+        if (luckPerms != null) {
+            providers.register(LuckPermsGroupProvider(luckPerms))
+        }
+
+        return providers
     }
 
     private fun createSync(): PrefixesSync? {
