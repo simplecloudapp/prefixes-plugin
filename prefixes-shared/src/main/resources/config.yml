@@ -7,8 +7,7 @@ version: 1
 # ─────────────────────────────────────────────────────────────────────────────
 general:
   # Where groups are read from.
-  # Available: config, luckperms, or the name of a provider registered by another plugin.
-  # Unknown values fall back to config.
+  # Available: config, luckperms, or the name of a custom provider.
   source: config
 
   # Group used when a player matches no other group.

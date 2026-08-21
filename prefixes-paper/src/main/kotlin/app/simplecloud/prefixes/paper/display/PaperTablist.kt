@@ -1,6 +1,7 @@
 package app.simplecloud.prefixes.paper.display
 
 import app.simplecloud.prefixes.shared.sync.tablist.ProfileProperty
+import app.simplecloud.prefixes.shared.sync.tablist.SourcedTablistEntry
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
 import app.simplecloud.prefixes.shared.sync.tablist.TablistGameMode
 import com.google.common.collect.ImmutableMultimap

@@ -24,15 +24,7 @@ class ConfigPrefixesGroup(
     override val displayName: String = group.displayName
     override val chatFormat: String = group.chatFormat
 
-    @Deprecated(
-        message = "Blocks the calling thread until the lookup finished.",
-        replaceWith = ReplaceWith("containsPlayerAsync(id)")
-    )
-    override fun containsPlayer(id: UUID): Boolean {
-        return hasPermission(id)
-    }
-
-    override fun containsPlayerAsync(id: UUID): CompletableFuture<Boolean> {
+    override fun containsPlayer(id: UUID): CompletableFuture<Boolean> {
         return CompletableFuture.supplyAsync { hasPermission(id) }
     }
 

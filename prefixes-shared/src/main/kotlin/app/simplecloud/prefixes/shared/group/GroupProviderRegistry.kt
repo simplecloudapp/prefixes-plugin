@@ -6,7 +6,7 @@ import app.simplecloud.prefixes.shared.config.PrefixesConfig
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
 
-class GroupProviders(
+class GroupProviderRegistry(
     private val config: ConfigurationFactory<PrefixesConfig>,
     private val provider: GroupProvider
 ) {
@@ -14,7 +14,7 @@ class GroupProviders(
     private val logger = Logger.getLogger("simplecloud-prefixes")
 
     private val providers = ConcurrentHashMap<String, GroupProvider>()
-    private val reportedSources = ConcurrentHashMap.newKeySet<String>()
+    private val sources = ConcurrentHashMap.newKeySet<String>()
 
     init {
         register(provider)
@@ -23,23 +23,23 @@ class GroupProviders(
     fun register(provider: GroupProvider) {
         val key = toKey(provider.name)
         providers[key] = provider
-        reportedSources.remove(key)
+        sources.remove(key)
     }
 
     fun unregister(name: String) {
         providers.remove(toKey(name))
     }
 
-    fun all(): Collection<GroupProvider> = providers.values.toList()
+    fun getAllGroupProviders(): Collection<GroupProvider> = providers.values.toList()
 
-    fun current(): GroupProvider {
+    fun getCurrentGroupProvider(): GroupProvider {
         val source = toKey(config.get().general.source)
         val provider = providers[source] ?: return reportMissing(source)
         return provider
     }
 
     private fun reportMissing(source: String): GroupProvider {
-        if (reportedSources.add(source)) {
+        if (sources.add(source)) {
             logger.warning("No group provider named '$source' is registered, using '${provider.name}' instead")
         }
 

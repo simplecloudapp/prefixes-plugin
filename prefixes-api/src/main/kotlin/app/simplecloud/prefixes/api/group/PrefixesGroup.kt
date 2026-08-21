@@ -54,20 +54,8 @@ interface PrefixesGroup {
      * Checks whether the specified player is a member of this group.
      *
      * @param id the UUID of the player
-     * @return `true` if the player belongs to this group, otherwise `false`
-     */
-    @Deprecated(
-        message = "Blocks the calling thread until the lookup finished.",
-        replaceWith = ReplaceWith("containsPlayerAsync(id)")
-    )
-    fun containsPlayer(id: UUID): Boolean
-
-    /**
-     * Checks asynchronously whether the specified player is a member of this group.
-     *
-     * @param id the UUID of the player
      * @return a future completing with `true` if the player belongs to this group,
      * otherwise `false`
      */
-    fun containsPlayerAsync(id: UUID): CompletableFuture<Boolean>
+    fun containsPlayer(id: UUID): CompletableFuture<Boolean>
 }

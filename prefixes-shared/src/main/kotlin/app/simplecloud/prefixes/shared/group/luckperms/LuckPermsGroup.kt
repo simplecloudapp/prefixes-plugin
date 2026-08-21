@@ -24,15 +24,7 @@ class LuckPermsGroup(
     override val displayName: String = getMetaValue("display-name") ?: "<color><playername>"
     override val chatFormat: String = getMetaValue("chat-format") ?: "<prefix><color><playername><suffix> <#475569>» <#F8FAFC><message>"
 
-    @Deprecated(
-        message = "Blocks the calling thread until the lookup finished.",
-        replaceWith = ReplaceWith("containsPlayerAsync(id)")
-    )
-    override fun containsPlayer(id: UUID): Boolean {
-        return containsPlayerAsync(id).join()
-    }
-
-    override fun containsPlayerAsync(id: UUID): CompletableFuture<Boolean> {
+    override fun containsPlayer(id: UUID): CompletableFuture<Boolean> {
         return luckPerms.userManager.loadUser(id).thenApply { user ->
             user.primaryGroup == name || user.getInheritedGroups(user.queryOptions).any { it.name == name }
         }

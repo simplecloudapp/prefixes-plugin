@@ -7,7 +7,7 @@ import app.simplecloud.prefixes.shared.api.PrefixesApiImpl
 import app.simplecloud.prefixes.shared.config.DefaultConfigInstaller
 import app.simplecloud.prefixes.shared.config.MessageConfig
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
-import app.simplecloud.prefixes.shared.group.GroupProviders
+import app.simplecloud.prefixes.shared.group.GroupProviderRegistry
 import app.simplecloud.prefixes.shared.group.config.ConfigGroupProvider
 import app.simplecloud.prefixes.shared.group.luckperms.LuckPermsGroupProvider
 import app.simplecloud.prefixes.shared.platform.PrefixesListener
@@ -32,9 +32,8 @@ class Prefixes(private val platform: PrefixesPlatform) {
 
     private val listeners = CopyOnWriteArrayList<PrefixesListener>()
 
-    val providers = createGroupProviders()
-
-    val api: PrefixesApi = PrefixesApiImpl(providers, listeners, platform)
+    val registry = createGroupRegistry()
+    val api: PrefixesApi = PrefixesApiImpl(registry, listeners, platform)
     val sync = createSync()
 
     fun startup() {
@@ -69,15 +68,15 @@ class Prefixes(private val platform: PrefixesPlatform) {
         return ConfigurationFactory(file, PrefixesConfig::class.java)
     }
 
-    private fun createGroupProviders(): GroupProviders {
-        val providers = GroupProviders(config, ConfigGroupProvider(config, platform.getPermissionChecker()))
+    private fun createGroupRegistry(): GroupProviderRegistry {
+        val registry = GroupProviderRegistry(config, ConfigGroupProvider(config, platform.getPermissionChecker()))
 
         val luckPerms = platform.getLuckPerms()
         if (luckPerms != null) {
-            providers.register(LuckPermsGroupProvider(luckPerms))
+            registry.register(LuckPermsGroupProvider(luckPerms))
         }
 
-        return providers
+        return registry
     }
 
     private fun createSync(): PrefixesSync? {
