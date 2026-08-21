@@ -15,8 +15,12 @@ import app.simplecloud.prefixes.shared.platform.PrefixesReloadListener
 import app.simplecloud.prefixes.shared.sync.PrefixesSync
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.logging.Level
+import java.util.logging.Logger
 
 class Prefixes(private val platform: PrefixesPlatform) {
+
+    private val logger = Logger.getLogger("simplecloud-prefixes")
 
     val config = createConfig()
     val messages = ConfigurationFactory(File(platform.getDataDirectory(), "messages.yml"), MessageConfig::class.java)
@@ -45,9 +49,16 @@ class Prefixes(private val platform: PrefixesPlatform) {
     }
 
     fun reload() {
-        config.reload()
-        messages.reload()
-        listeners.forEach(PrefixesReloadListener::onReload)
+        runCatching {
+            logger.info("Reloading simplecloud prefixes...")
+            config.reload()
+            messages.reload()
+            listeners.forEach(PrefixesReloadListener::onReload)
+        }.onSuccess {
+            logger.info("Succesfully reloaded simplecloud prefixes")
+        }.onFailure { throwable ->
+            logger.log(Level.SEVERE, "Failed to reload simplecloud prefixes", throwable)
+        }
     }
 
     private fun createConfig(): ConfigurationFactory<PrefixesConfig> {
