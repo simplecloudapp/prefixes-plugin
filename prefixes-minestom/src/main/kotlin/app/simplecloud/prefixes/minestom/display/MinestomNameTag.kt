@@ -1,6 +1,7 @@
 package app.simplecloud.prefixes.minestom.display
 
 import net.kyori.adventure.text.Component
+import net.minestom.server.component.DataComponents
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityPose
 import net.minestom.server.entity.EntityType
@@ -32,10 +33,8 @@ class MinestomNameTag(private val player: Player) {
     }
 
     fun setName(name: Component) {
-        edit { meta ->
-            meta.customName = name
-            meta.isCustomNameVisible = true
-        }
+        entity.set(DataComponents.CUSTOM_NAME, name)
+        edit { meta -> meta.isCustomNameVisible = true }
     }
 
     fun setSneaking(sneaking: Boolean) {
