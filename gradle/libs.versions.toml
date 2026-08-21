@@ -2,12 +2,12 @@
 kotlin = "2.4.10"
 kotlinx-coroutines = "1.11.0"
 
-shadow = "9.5.1"
+shadow = "9.6.1"
 minotaur = "2.9.0"
 paperweight = "2.0.0-beta.21"
 protobuf = "0.10.0"
 
-simplecloud-api = "0.1.0-platform.40"
+simplecloud-api = "0.1.0-platform.54-dev.1.1-770dcc6"
 simplecloud-plugin-api = "0.0.1-platform.1778966459069-b1e45e2"
 
 paper = "26.2.build.+"
@@ -24,7 +24,7 @@ configurate = "4.2.0"
 protoc = "4.35.1"
 protobuf-kotlin = "4.35.1"
 
-jnats = "2.26.0"
+jnats = "2.26.2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
