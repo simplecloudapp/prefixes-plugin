@@ -11,13 +11,15 @@ simplecloud-api = "0.1.0-platform.54-dev.1.1-770dcc6"
 simplecloud-plugin-api = "0.0.1-platform.1778966459069-b1e45e2"
 
 paper = "26.2.build.+"
+minestom = "2026.08.16-26.2"
 
 adventure = "5.2.0"
 luckperms = "5.5"
 reflection-remapper = "0.1.3"
 
 cloud-command = "2.0.0"
-cloud-command-platform = "2.0.0-SNAPSHOT"
+cloud-command-platform = "2.0.0"
+cloud-command-minestom = "2.2.0-SNAPSHOT"
 
 configurate = "4.2.0"
 
@@ -40,8 +42,10 @@ adventure-text-serializer-gson = { module = "net.kyori:adventure-text-serializer
 cloud-command-core = { module = "org.incendo:cloud-core", version.ref = "cloud-command" }
 cloud-command-coroutines = { module = "org.incendo:cloud-kotlin-coroutines", version.ref = "cloud-command" }
 cloud-command-paper = { module = "org.incendo:cloud-paper", version.ref = "cloud-command-platform" }
+cloud-command-minestom = { module = "org.incendo:cloud-minestom", version.ref = "cloud-command-minestom" }
 
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
+minestom = { module = "net.minestom:minestom", version.ref = "minestom" }
 
 luckperms-api = { module = "net.luckperms:api", version.ref = "luckperms" }
 reflection-remapper = { module = "xyz.jpenilla:reflection-remapper", version.ref = "reflection-remapper" }

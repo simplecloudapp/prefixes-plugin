@@ -33,7 +33,7 @@ The Prefixes Plugin provides comprehensive rank management for chat, tab list an
 - [x] **Chat, Tab List & Name Tags**: Prefixes, suffixes, colors and display names are applied to chat messages, the tab list and player name tags.
 - [x] **Cross-Server Sync**: Share chat messages and tab list entries between all servers, selected server groups or persistent servers of your network.
 - [x] **MiniMessage Formats**: Prefixes, suffixes, display names and chat formats are fully customizable with placeholder support.
-- [x] **Supported Server Software**: Supports Paper and Forks.
+- [x] **Supported Server Software**: Supports Paper and Forks, as well Minestom.
 - [x] **Quick Setup**: Easy installation process for all supported software.
 
 ## Dependency

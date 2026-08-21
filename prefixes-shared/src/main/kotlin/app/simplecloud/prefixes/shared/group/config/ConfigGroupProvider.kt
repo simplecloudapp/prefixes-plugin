@@ -5,7 +5,6 @@ import app.simplecloud.plugin.api.shared.extension.miniMessage
 import app.simplecloud.plugin.api.shared.permission.PermissionChecker
 import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.api.group.PrefixesGroup
-import app.simplecloud.prefixes.shared.config.CONFIG_SOURCE
 import app.simplecloud.prefixes.shared.config.ConfigGroup
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
 import app.simplecloud.prefixes.shared.utilities.ColorParser
@@ -18,7 +17,7 @@ class ConfigGroupProvider(
     private val permissionChecker: PermissionChecker<UUID>
 ) : GroupProvider {
 
-    override val name: String = CONFIG_SOURCE
+    override fun getName(): String = "config"
 
     override fun getGroups(): CompletableFuture<Collection<PrefixesGroup>> {
         return CompletableFuture.completedFuture(loadGroups())

@@ -11,7 +11,7 @@ interface GroupProvider {
     /**
      * The name of this provider.
      */
-    val name: String
+    fun getName(): String
 
     /**
      * Returns all registered prefix groups.
