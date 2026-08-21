@@ -3,6 +3,8 @@ package app.simplecloud.prefixes.shared.group.luckperms
 import app.simplecloud.plugin.api.shared.extension.miniMessage
 import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.api.group.PrefixesGroup
+import app.simplecloud.prefixes.shared.utilities.ColorParser
+import net.kyori.adventure.text.Component
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.model.group.Group
 import net.luckperms.api.model.user.User
@@ -48,20 +50,26 @@ class LuckPermsGroupProvider(
     }
 
     private fun applyPrefixes(target: Group, source: PrefixesGroup) {
-        target.data().add(WeightNode.builder(source.priority).build())
+        val data = target.data()
+        data.add(WeightNode.builder(source.priority).build())
 
-        source.prefix?.let { miniMessage.serialize(it) }?.takeIf { it.isNotEmpty() }?.let {
-            target.data().add(PrefixNode.builder(it, source.priority).build())
-        }
-        source.suffix?.let { miniMessage.serialize(it) }?.takeIf { it.isNotEmpty() }?.let {
-            target.data().add(SuffixNode.builder(it, source.priority).build())
-        }
-        source.color?.let { "<${it.asHexString().uppercase()}>" }?.let {
-            target.data().add(MetaNode.builder("color", it).build())
+        val prefix = miniMessage.serialize(source.prefix ?: Component.empty())
+        if (prefix.isNotEmpty()) {
+            data.add(PrefixNode.builder(prefix, source.priority).build())
         }
 
-        target.data().add(MetaNode.builder("display-name", source.displayName).build())
-        target.data().add(MetaNode.builder("chat-format", source.chatFormat).build())
+        val suffix = miniMessage.serialize(source.suffix ?: Component.empty())
+        if (suffix.isNotEmpty()) {
+            data.add(SuffixNode.builder(suffix, source.priority).build())
+        }
+
+        val color = ColorParser.serialize(source.color)
+        if (color.isNotEmpty()) {
+            data.add(MetaNode.builder("color", color).build())
+        }
+
+        data.add(MetaNode.builder("display-name", source.displayName).build())
+        data.add(MetaNode.builder("chat-format", source.chatFormat).build())
     }
 
     private fun resolveGroup(user: User): PrefixesGroup? {
@@ -70,18 +78,18 @@ class LuckPermsGroupProvider(
         val primaryGroup = luckPerms.groupManager.getGroup(primaryGroupName)
         val candidates = if (primaryGroup == null) inheritedGroups else inheritedGroups + primaryGroup
 
-        return selectHighestWeightedGroup(candidates, primaryGroupName)
-            ?.let { LuckPermsGroup(it, luckPerms) }
+        val group = selectHighestWeightedGroup(candidates, primaryGroupName) ?: return null
+        return LuckPermsGroup(group, luckPerms)
     }
-}
 
-internal fun selectHighestWeightedGroup(groups: Iterable<Group>, primaryGroupName: String): Group? {
-    return groups
-        .distinctBy { it.name }
-        .sortedWith(
-            compareByDescending<Group> { it.weight.orElse(0) }
-                .thenByDescending { it.name == primaryGroupName }
-                .thenBy { it.name }
-        )
-        .firstOrNull()
+    private fun selectHighestWeightedGroup(groups: Iterable<Group>, primaryGroupName: String): Group? {
+        return groups
+            .distinctBy { it.name }
+            .sortedWith(
+                compareByDescending<Group> { it.weight.orElse(0) }
+                    .thenByDescending { it.name == primaryGroupName }
+                    .thenBy { it.name }
+            )
+            .firstOrNull()
+    }
 }

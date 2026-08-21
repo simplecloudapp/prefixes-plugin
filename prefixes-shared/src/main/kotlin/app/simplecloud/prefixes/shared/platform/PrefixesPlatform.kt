@@ -6,27 +6,27 @@ import java.io.File
 import java.util.UUID
 
 /**
- * Represents the platform environment on which the plugin runs.
+ * Represents a platform on which the plugin runs.
  */
 interface PrefixesPlatform {
 
     /**
-     * The platform-specific plugin data directory.
+     * Returns the platform-specific data directory.
      */
-    val dataDirectory: File
+    fun getDataDirectory(): File
 
     /**
-     * The platform-specific permission checker.
+     * Returns the platform-specific permission checker.
      */
-    val permissionChecker: PermissionChecker<UUID>
+    fun getPermissionChecker(): PermissionChecker<UUID>
 
     /**
-     * The platform-specific player name resolver.
+     * Returns the LuckPerms instance on the platform, or null if not available.
      */
-    val playerResolver: (UUID) -> String
+    fun getLuckPerms(): LuckPerms?
 
     /**
-     * The LuckPerms instance on the platform, or null if not available.
+     * Returns the name of a player.
      */
-    val luckPerms: LuckPerms?
+    fun getPlayerName(id: UUID): String
 }

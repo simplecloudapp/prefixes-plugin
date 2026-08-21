@@ -7,7 +7,6 @@ import app.simplecloud.prefixes.shared.config.SyncChannels
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntryMapper
 import app.simplecloud.prefixes.shared.utilities.ComponentSerializer
-import app.simplecloud.prefixes.shared.utilities.PrefixesSubjects
 import app.simplecloud.prefixes.v1.ChatMessageEvent
 import app.simplecloud.prefixes.v1.TablistEntryRemoveEvent
 import app.simplecloud.prefixes.v1.TablistEntryUpdateEvent

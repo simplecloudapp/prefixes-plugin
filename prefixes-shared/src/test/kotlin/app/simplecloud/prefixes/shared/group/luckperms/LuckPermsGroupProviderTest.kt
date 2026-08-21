@@ -69,7 +69,7 @@ class LuckPermsGroupProviderTest {
         ) { proxy, method, arguments ->
             when (method.name) {
                 "getName" -> name
-                "getWeight" -> weight?.let(OptionalInt::of) ?: OptionalInt.empty()
+                "getWeight" -> weightOf(weight)
                 "equals" -> proxy === arguments?.firstOrNull()
                 "hashCode" -> System.identityHashCode(proxy)
                 "toString" -> "Group(name=$name, weight=$weight)"
@@ -77,4 +77,21 @@ class LuckPermsGroupProviderTest {
             }
         } as Group
     }
+
+    private fun weightOf(weight: Int?): OptionalInt {
+        if (weight == null) return OptionalInt.empty()
+        return OptionalInt.of(weight)
+    }
+
+    private fun selectHighestWeightedGroup(groups: Iterable<Group>, primaryGroupName: String): Group? {
+        return groups
+            .distinctBy { it.name }
+            .sortedWith(
+                compareByDescending<Group> { it.weight.orElse(0) }
+                    .thenByDescending { it.name == primaryGroupName }
+                    .thenBy { it.name }
+            )
+            .firstOrNull()
+    }
+
 }

@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture
 interface GroupProvider {
 
     /**
-     * The unique identifier name of this provider.
+     * The name of this provider.
      */
     val name: String
 

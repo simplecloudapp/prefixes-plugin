@@ -1,5 +1,6 @@
 package app.simplecloud.prefixes.paper.display
 
+import app.simplecloud.prefixes.shared.sync.tablist.ProfileProperty
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
 import app.simplecloud.prefixes.shared.sync.tablist.TablistGameMode
 import com.google.common.collect.ImmutableMultimap
@@ -19,8 +20,6 @@ import java.util.EnumSet
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
-private const val SYNC_BATCH_SIZE = 100
-
 class PaperTablist {
 
     private val entries = ConcurrentHashMap<UUID, SourcedTablistEntry>()
@@ -35,7 +34,9 @@ class PaperTablist {
             broadcast(createInfoPacket(listOf(entry), actions))
         }
         if (previous == null || previous.name != entry.name || previous.priority != entry.priority) {
-            previous?.let { broadcast(ClientboundSetPlayerTeamPacket.createRemovePacket(createTeam(it))) }
+            if (previous != null) {
+                broadcast(ClientboundSetPlayerTeamPacket.createRemovePacket(createTeam(previous)))
+            }
             broadcast(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(createTeam(entry), true))
         }
     }
@@ -71,7 +72,7 @@ class PaperTablist {
             .map(SourcedTablistEntry::entry)
             .filter { Bukkit.getPlayer(it.uniqueId) == null }
 
-        visibleEntries.chunked(SYNC_BATCH_SIZE).forEach { batch ->
+        visibleEntries.chunked(100).forEach { batch ->
             connection.send(createInfoPacket(batch, getFullUpdateActions()))
         }
         visibleEntries.forEach { entry ->
@@ -85,7 +86,7 @@ class PaperTablist {
         tablistEntries: Collection<TablistEntry>,
         actions: EnumSet<ClientboundPlayerInfoUpdatePacket.Action>
     ): ClientboundPlayerInfoUpdatePacket {
-        val packetEntries = tablistEntries.map { entry ->
+        val packet = tablistEntries.map { entry ->
             ClientboundPlayerInfoUpdatePacket.Entry(
                 entry.uniqueId,
                 createGameProfile(entry),
@@ -99,7 +100,7 @@ class PaperTablist {
             )
         }
 
-        return ClientboundPlayerInfoUpdatePacket(actions, packetEntries)
+        return ClientboundPlayerInfoUpdatePacket(actions, packet)
     }
 
     private fun getActions(
@@ -147,13 +148,15 @@ class PaperTablist {
         val properties = ImmutableMultimap.builder<String, Property>()
 
         entry.profileProperties.forEach { property ->
-            val profileProperty = property.signature
-                ?.let { Property(property.name, property.value, it) }
-                ?: Property(property.name, property.value)
-            properties.put(property.name, profileProperty)
+            properties.put(property.name, createProperty(property))
         }
 
         return GameProfile(entry.uniqueId, entry.name, PropertyMap(properties.build()))
+    }
+
+    private fun createProperty(property: ProfileProperty): Property {
+        val signature = property.signature ?: return Property(property.name, property.value)
+        return Property(property.name, property.value, signature)
     }
 
     private fun getGameType(gameMode: TablistGameMode): GameType = when (gameMode) {

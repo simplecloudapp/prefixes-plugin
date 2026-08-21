@@ -2,7 +2,7 @@ package app.simplecloud.prefixes.shared.group.luckperms
 
 import app.simplecloud.plugin.api.shared.extension.miniMessage
 import app.simplecloud.prefixes.api.group.PrefixesGroup
-import app.simplecloud.prefixes.api.util.parseColor
+import app.simplecloud.prefixes.shared.utilities.ColorParser
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 import net.luckperms.api.LuckPerms
@@ -20,7 +20,7 @@ class LuckPermsGroup(
     override val permission: String = "group.${group.name}"
     override val prefix: Component? = miniMessage.deserialize(group.cachedData.metaData.prefix ?: "")
     override val suffix: Component? = miniMessage.deserialize(group.cachedData.metaData.suffix ?: "")
-    override val color: TextColor? = getMetaValue("color")?.let { parseColor(it) } ?: TextColor.fromHexString("#FFFFFF")
+    override val color: TextColor? = parseColor()
     override val displayName: String = getMetaValue("display-name") ?: "<color><playername>"
     override val chatFormat: String = getMetaValue("chat-format") ?: "<prefix><color><playername><suffix> <#475569>» <#F8FAFC><message>"
 
@@ -34,8 +34,12 @@ class LuckPermsGroup(
         }
     }
 
+    private fun parseColor(): TextColor? {
+        val value = getMetaValue("color") ?: return TextColor.fromHexString("#FFFFFF")
+        return ColorParser.parse(value) ?: TextColor.fromHexString("#FFFFFF")
+    }
+
     private fun getMetaValue(key: String): String? {
         return group.cachedData.metaData.getMetaValue(key)
     }
-
 }

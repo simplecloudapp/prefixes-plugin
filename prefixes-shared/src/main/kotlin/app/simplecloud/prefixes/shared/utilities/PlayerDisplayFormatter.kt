@@ -15,12 +15,7 @@ object PlayerDisplayFormatter {
         return data.prefix.append(displayName).append(data.suffix)
     }
 
-    fun formatChatMessage(
-        data: PrefixesPlayerData,
-        playerName: String,
-        message: Component,
-        displayName: Component = data.displayName
-    ): Component {
+    fun formatChatMessage(data: PrefixesPlayerData, playerName: String, message: Component, displayName: Component = data.displayName): Component {
         return miniMessage.deserialize(
             data.chatFormat,
             Placeholder.component("prefix", data.prefix),

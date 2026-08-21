@@ -3,7 +3,6 @@ package app.simplecloud.prefixes.shared.sync
 import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
-import app.simplecloud.prefixes.shared.utilities.PrefixesSubjects
 import io.nats.client.Connection
 import io.nats.client.Nats
 import io.nats.client.Options

@@ -3,7 +3,6 @@ package app.simplecloud.prefixes.paper.listener
 import app.simplecloud.prefixes.paper.display.PaperDisplayManager
 import app.simplecloud.prefixes.paper.display.PaperTablist
 import app.simplecloud.prefixes.shared.Prefixes
-import app.simplecloud.prefixes.shared.sync.SyncPublisher
 import app.simplecloud.prefixes.shared.utilities.PlayerDisplayFormatter
 import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.event.EventHandler
@@ -15,8 +14,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 class PlayerListener(
     private val prefixes: Prefixes,
     private val manager: PaperDisplayManager,
-    private val tablist: PaperTablist,
-    private val publisher: SyncPublisher?
+    private val tablist: PaperTablist
 ) : Listener {
 
     @EventHandler
@@ -53,6 +51,6 @@ class PlayerListener(
         )
 
         event.renderer { _, _, _, _ -> message }
-        publisher?.publishChatMessage(message)
+        prefixes.sync?.publisher?.publishChatMessage(message)
     }
 }

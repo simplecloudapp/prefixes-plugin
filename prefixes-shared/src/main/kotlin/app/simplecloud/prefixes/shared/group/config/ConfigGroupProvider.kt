@@ -7,6 +7,8 @@ import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.api.group.PrefixesGroup
 import app.simplecloud.prefixes.shared.config.ConfigGroup
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
+import app.simplecloud.prefixes.shared.utilities.ColorParser
+import net.kyori.adventure.text.Component
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
@@ -57,9 +59,9 @@ class ConfigGroupProvider(
         name = group.name,
         priority = group.priority,
         permission = group.permission,
-        prefix = group.prefix?.let { miniMessage.serialize(it) } ?: "",
-        suffix = group.suffix?.let { miniMessage.serialize(it) } ?: "",
-        color = group.color?.let { "<${it.asHexString().uppercase()}>" } ?: "",
+        prefix = miniMessage.serialize(group.prefix ?: Component.empty()),
+        suffix = miniMessage.serialize(group.suffix ?: Component.empty()),
+        color = ColorParser.serialize(group.color),
         displayName = group.displayName,
         chatFormat = group.chatFormat
     )

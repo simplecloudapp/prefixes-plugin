@@ -1,4 +1,4 @@
-package app.simplecloud.prefixes.shared.utilities
+package app.simplecloud.prefixes.shared.sync
 
 import app.simplecloud.api.runtime.SimpleCloudRuntime
 import app.simplecloud.prefixes.shared.config.ALL_SYNC_SOURCE
