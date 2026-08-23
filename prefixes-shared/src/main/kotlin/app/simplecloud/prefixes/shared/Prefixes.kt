@@ -49,8 +49,8 @@ class Prefixes(private val platform: PrefixesPlatform) {
         listeners.add(listener)
     }
 
-    fun reload() {
-        runCatching {
+    fun reload(): Boolean {
+        return runCatching {
             logger.info("Reloading simplecloud prefixes...")
             config.reload()
             messages.reload()
@@ -59,7 +59,7 @@ class Prefixes(private val platform: PrefixesPlatform) {
             logger.info("Succesfully reloaded simplecloud prefixes")
         }.onFailure { throwable ->
             logger.log(Level.SEVERE, "Failed to reload simplecloud prefixes", throwable)
-        }
+        }.isSuccess
     }
 
     private fun createConfig(): ConfigurationFactory<PrefixesConfig> {

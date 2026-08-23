@@ -19,12 +19,12 @@ object MinestomPlayerTeam {
         color: TextColor = NamedTextColor.WHITE,
         hideNameTag: Boolean = false
     ): Team {
-        val teamManager = MinecraftServer.getTeamManager()
+        val manager = MinecraftServer.getTeamManager()
         val teamName = "${PriorityFormatter.format(priority)}_$name"
 
-        teamManager.deleteTeam(teamName)
+        manager.deleteTeam(teamName)
 
-        val team = teamManager
+        val team = manager
             .createBuilder(teamName)
             .prefix(prefix)
             .suffix(suffix)

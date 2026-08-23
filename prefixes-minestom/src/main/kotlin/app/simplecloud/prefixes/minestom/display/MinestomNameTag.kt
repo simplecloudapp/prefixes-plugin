@@ -7,10 +7,12 @@ import net.minestom.server.entity.EntityPose
 import net.minestom.server.entity.EntityType
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.metadata.other.InteractionMeta
+import java.util.concurrent.atomic.AtomicBoolean
 
 class MinestomNameTag(private val player: Player) {
 
     private val entity = Entity(EntityType.INTERACTION)
+    private val removed = AtomicBoolean()
 
     init {
         entity.updateViewableRule { viewer -> viewer != player }
@@ -29,7 +31,12 @@ class MinestomNameTag(private val player: Player) {
         // Spawned as close to its final position as possible, so the client does not
         // interpolate it into place once it becomes a passenger.
         entity.setInstance(instance, player.position.add(0.0, PASSENGER_OFFSET, 0.0))
-            .thenRun { player.addPassenger(entity) }
+            .thenRun {
+                // The player can disconnect while the instance is still being set, in which case
+                // addPassenger would throw on an entity that no longer has an instance.
+                if (removed.get() || entity.isRemoved || !player.isOnline || player.instance == null) return@thenRun
+                player.addPassenger(entity)
+            }
     }
 
     fun setName(name: Component) {
@@ -42,9 +49,11 @@ class MinestomNameTag(private val player: Player) {
     }
 
     fun remove() {
-        if (entity.isRemoved) return
+        if (!removed.compareAndSet(false, true)) return
 
-        player.removePassenger(entity)
+        if (player.instance != null) {
+            player.removePassenger(entity)
+        }
         entity.remove()
     }
 

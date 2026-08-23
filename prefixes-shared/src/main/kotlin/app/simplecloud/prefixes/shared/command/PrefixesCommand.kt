@@ -50,13 +50,13 @@ class PrefixesCommand<C : PrefixesSender>(
                         return@suspendingHandler
                     }
 
-                    runCatching {
-                        prefixes.reload()
-                    }.onSuccess {
-                        sender.sendMessage(messages.msg(messages.command.reload.success))
-                    }.onFailure {
-                        sender.sendMessage(messages.msg(messages.command.reload.failed))
+                    val reloaded = prefixes.reload()
+                    val message = when {
+                        reloaded -> messages.command.reload.success
+                        else -> messages.command.reload.failed
                     }
+
+                    sender.sendMessage(messages.msg(message))
                 }
         )
     }

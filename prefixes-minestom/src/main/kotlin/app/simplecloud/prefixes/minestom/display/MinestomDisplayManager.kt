@@ -42,7 +42,9 @@ class MinestomDisplayManager(
 
     fun updatePlayer(player: Player) {
         prefixes.api.getPrefixData(player.uuid).thenAccept { data ->
-            applyPrefixData(player, data)
+            MinecraftServer.getSchedulerManager().scheduleNextTick {
+                applyPrefixData(player, data)
+            }
         }.exceptionally { throwable ->
             logger.log(Level.WARNING, "Failed to update prefix data of ${player.username}", throwable)
             null
@@ -185,11 +187,7 @@ class MinestomDisplayManager(
         if (permissions.hasHandler || !warned.compareAndSet(false, true)) return
         if (!prefixes.registry.getCurrentGroupProvider().getName().equals(CONFIG_SOURCE, ignoreCase = true)) return
 
-        logger.warning(
-            "Source Type is set to $CONFIG_SOURCE, but no permission handler was set! " +
-            "Every player will receive the default group. " +
-            "Pass one to PrefixesMinestom.builder(...).permissionHandler(...) or register your own group provider."
-        )
+        logger.warning("Source Type is set to $CONFIG_SOURCE, but no permission handler was set!")
     }
 
 }
