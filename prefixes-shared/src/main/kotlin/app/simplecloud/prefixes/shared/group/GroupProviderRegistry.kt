@@ -21,7 +21,7 @@ class GroupProviderRegistry(
     }
 
     fun register(provider: GroupProvider) {
-        val key = toKey(provider.name)
+        val key = toKey(provider.getName())
         providers[key] = provider
         sources.remove(key)
     }
@@ -40,7 +40,7 @@ class GroupProviderRegistry(
 
     private fun reportMissing(source: String): GroupProvider {
         if (sources.add(source)) {
-            logger.warning("No group provider named '$source' is registered, using '${provider.name}' instead")
+            logger.warning("No group provider named '$source' is registered, using '${provider.getName()}' instead")
         }
 
         return provider

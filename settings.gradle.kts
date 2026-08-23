@@ -4,8 +4,10 @@ plugins {
 
 include(
     "prefixes-api",
-    "prefixes-shared",
-    "prefixes-paper"
+    "prefixes-minestom",
+    "prefixes-minestom:example",
+    "prefixes-paper",
+    "prefixes-shared"
 )
 
 rootProject.name = "prefixes"

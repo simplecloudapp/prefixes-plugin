@@ -3,7 +3,6 @@ package app.simplecloud.prefixes.shared.group.luckperms
 import app.simplecloud.plugin.api.shared.extension.miniMessage
 import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.api.group.PrefixesGroup
-import app.simplecloud.prefixes.shared.config.LUCKPERMS_SOURCE
 import app.simplecloud.prefixes.shared.utilities.ColorParser
 import net.kyori.adventure.text.Component
 import net.luckperms.api.LuckPerms
@@ -20,7 +19,7 @@ class LuckPermsGroupProvider(
     private val luckPerms: LuckPerms
 ) : GroupProvider {
 
-    override val name: String = LUCKPERMS_SOURCE
+    override fun getName(): String = "luckperms"
 
     override fun getGroups(): CompletableFuture<Collection<PrefixesGroup>> {
         val groups = luckPerms.groupManager.loadedGroups

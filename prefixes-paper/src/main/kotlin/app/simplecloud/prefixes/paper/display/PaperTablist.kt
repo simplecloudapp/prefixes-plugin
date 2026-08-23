@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap
 class PaperTablist {
 
     private val entries = ConcurrentHashMap<UUID, SourcedTablistEntry>()
+    private val teams = ConcurrentHashMap<UUID, PaperPlayerTeam>()
 
     fun update(publisherId: String, entry: TablistEntry) {
         if (Bukkit.getPlayer(entry.uniqueId) != null) return
@@ -35,10 +36,7 @@ class PaperTablist {
             broadcast(createInfoPacket(listOf(entry), actions))
         }
         if (previous == null || previous.name != entry.name || previous.priority != entry.priority) {
-            if (previous != null) {
-                broadcast(ClientboundSetPlayerTeamPacket.createRemovePacket(createTeam(previous)))
-            }
-            broadcast(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(createTeam(entry), true))
+            updateTeam(entry)
         }
     }
 
@@ -59,10 +57,9 @@ class PaperTablist {
         if (publisherId != null && sourcedEntry.publisherId != publisherId) return
         if (!entries.remove(id, sourcedEntry)) return
 
+        removeTeam(id)
         if (Bukkit.getPlayer(id) != null) return
 
-        val entry = sourcedEntry.entry
-        broadcast(ClientboundSetPlayerTeamPacket.createRemovePacket(createTeam(entry)))
         broadcast(ClientboundPlayerInfoRemovePacket(listOf(id)))
     }
 
@@ -82,6 +79,19 @@ class PaperTablist {
     }
 
     private fun createTeam(entry: TablistEntry) = PaperPlayerTeam(entry.name, entry.priority)
+
+    private fun updateTeam(entry: TablistEntry) {
+        removeTeam(entry.uniqueId)
+
+        val team = createTeam(entry)
+        teams[entry.uniqueId] = team
+        broadcast(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true))
+    }
+
+    private fun removeTeam(id: UUID) {
+        val team = teams.remove(id) ?: return
+        broadcast(ClientboundSetPlayerTeamPacket.createRemovePacket(team))
+    }
 
     private fun createInfoPacket(
         tablistEntries: Collection<TablistEntry>,
