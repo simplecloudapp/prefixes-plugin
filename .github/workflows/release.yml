@@ -19,7 +19,7 @@ jobs:
           submodules: recursive
 
       - name: Set up JDK 25
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '25'
@@ -35,6 +35,12 @@ jobs:
 
       - name: Build ShadowJars
         run: ./gradlew clean build shadowJar
+
+      - name: Publish to SimpleCloud Repository
+        run: ./gradlew publish
+        env:
+          SIMPLECLOUD_USERNAME: ${{ secrets.SIMPLECLOUD_USERNAME }}
+          SIMPLECLOUD_PASSWORD: ${{ secrets.SIMPLECLOUD_PASSWORD }}
 
       - name: Get Gradle Version
         id: gradle_version
