@@ -22,7 +22,7 @@ class PrefixesMinestomBuilder internal constructor(private val directory: Path) 
     }
 
     /**
-     * Registers the `/scprefix` command. Enabled by default.
+     * Registers all commands from prefixes.
      */
     fun commands(enabled: Boolean): PrefixesMinestomBuilder = apply {
         this.commands = enabled
@@ -36,7 +36,7 @@ class PrefixesMinestomBuilder internal constructor(private val directory: Path) 
     }
 
     /**
-     * Creates the instance and starts the plugin.
+     * Creates the instance and starts prefixes.
      */
     fun enable(): PrefixesMinestom {
         return PrefixesMinestom(directory, permissionHandler, commands, luckPerms).enable()

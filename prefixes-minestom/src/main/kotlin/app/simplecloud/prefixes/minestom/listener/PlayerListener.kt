@@ -51,23 +51,17 @@ class PlayerListener(
 
         val player = event.player
         val data = manager.getPlayer(player.uuid) ?: return
-        val displayName = PlayerDisplayFormatter.displayName(data, player.username, features.displayName)
-
-        val message = PlayerDisplayFormatter.formatChatMessage(
-            data,
-            player.username,
-            Component.text(event.rawMessage),
-            displayName
-        )
+        val displayName = PlayerDisplayFormatter.formatDisplayName(data, player.username, features.displayName)
+        val message = PlayerDisplayFormatter.formatChatMessage(data, player.username, Component.text(event.rawMessage), displayName)
 
         event.formattedMessage = message
         prefixes.sync?.publisher?.publishChatMessage(message)
     }
 
     private fun onInput(event: PlayerInputEvent) {
-        when {
-            event.hasPressedShiftKey() -> manager.setSneaking(event.player, true)
-            event.hasReleasedShiftKey() -> manager.setSneaking(event.player, false)
+        if (event.hasPressedShiftKey() || event.hasReleasedShiftKey()) {
+            manager.setSneaking(event.player, event.hasPressedShiftKey())
         }
     }
+
 }

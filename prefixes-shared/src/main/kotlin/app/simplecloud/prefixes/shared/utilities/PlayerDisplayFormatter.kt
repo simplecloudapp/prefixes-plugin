@@ -7,7 +7,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 
 object PlayerDisplayFormatter {
 
-    fun displayName(data: PrefixesPlayerData, playerName: String, enabled: Boolean): Component {
+    fun formatDisplayName(data: PrefixesPlayerData, playerName: String, enabled: Boolean): Component {
         return if (enabled) data.displayName else Component.text(playerName)
     }
 

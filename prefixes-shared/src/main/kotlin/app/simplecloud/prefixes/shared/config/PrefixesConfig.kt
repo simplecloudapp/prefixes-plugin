@@ -1,6 +1,7 @@
 package app.simplecloud.prefixes.shared.config
 
 import app.simplecloud.plugin.api.shared.config.VersionedConfig
+import app.simplecloud.prefixes.shared.utilities.Constants
 import app.simplecloud.prefixes.shared.utilities.config.ConfigVersion
 import app.simplecloud.prefixes.shared.utilities.config.DefaultConfigs
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
@@ -16,7 +17,7 @@ data class PrefixesConfig(
 
 @ConfigSerializable
 data class GeneralConfig(
-    val source: String = CONFIG_SOURCE,
+    val source: String = Constants.CONFIG_SOURCE,
     val defaultGroup: String = "default"
 )
 
@@ -31,7 +32,7 @@ data class FeaturesConfig(
 data class SyncConfig(
     val enabled: Boolean = true,
     val channels: SyncChannels = SyncChannels(),
-    val sources: List<String> = listOf(CURRENT_SYNC_SOURCE)
+    val sources: List<String> = listOf(Constants.CURRENT_SYNC_SOURCE)
 )
 
 @ConfigSerializable
@@ -51,9 +52,3 @@ data class ConfigGroup(
     val displayName: String = "",
     val chatFormat: String = ""
 )
-
-const val CONFIG_SOURCE = "config"
-const val LUCKPERMS_SOURCE = "luckperms"
-
-const val CURRENT_SYNC_SOURCE = "CURRENT"
-const val ALL_SYNC_SOURCE = "ALL"

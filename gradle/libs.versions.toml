@@ -27,6 +27,7 @@ protoc = "4.35.1"
 protobuf-kotlin = "4.35.1"
 
 jnats = "2.26.2"
+slf4j = "2.0.18"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -57,6 +58,7 @@ protoc = { module = "com.google.protobuf:protoc", version.ref = "protoc" }
 protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf-kotlin" }
 
 jnats = { module = "io.nats:jnats", version.ref = "jnats" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 
 [bundles]
 configurate = ["configurate-kotlin", "configurate-yaml"]

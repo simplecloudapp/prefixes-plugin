@@ -1,7 +1,6 @@
 package app.simplecloud.prefixes.shared
 
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
-import app.simplecloud.prefixes.api.PrefixesApi
 import app.simplecloud.prefixes.api.PrefixesApiProvider
 import app.simplecloud.prefixes.shared.api.PrefixesApiImpl
 import app.simplecloud.prefixes.shared.config.DefaultConfigInstaller
@@ -15,25 +14,17 @@ import app.simplecloud.prefixes.shared.platform.PrefixesPlatform
 import app.simplecloud.prefixes.shared.sync.PrefixesSync
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.logging.Level
-import java.util.logging.Logger
 
 class Prefixes(private val platform: PrefixesPlatform) {
 
-    private val logger = Logger.getLogger("simplecloud-prefixes")
-
-    val config = createConfig()
-    val messages = ConfigurationFactory(File(platform.getDataDirectory(), "messages.yml"), MessageConfig::class.java)
-
-    init {
-        config.loadOrCreate(PrefixesConfig())
-        messages.loadOrCreate(MessageConfig())
-    }
-
+    private val logger = platform.getLogger()
     private val listeners = CopyOnWriteArrayList<PrefixesListener>()
 
+    val config = createConfig()
+    val messages = createMessages()
+
     val registry = createGroupRegistry()
-    val api: PrefixesApi = PrefixesApiImpl(registry, listeners, platform)
+    val api = PrefixesApiImpl(registry, listeners, platform)
     val sync = createSync()
 
     fun startup() {
@@ -58,22 +49,35 @@ class Prefixes(private val platform: PrefixesPlatform) {
         }.onSuccess {
             logger.info("Succesfully reloaded simplecloud prefixes")
         }.onFailure { throwable ->
-            logger.log(Level.SEVERE, "Failed to reload simplecloud prefixes", throwable)
+            logger.error("Failed to reload simplecloud prefixes", throwable)
         }.isSuccess
+    }
+
+    fun getPlatform(): PrefixesPlatform {
+        return platform
     }
 
     private fun createConfig(): ConfigurationFactory<PrefixesConfig> {
         val file = File(platform.getDataDirectory(), "config.yml")
         DefaultConfigInstaller.install(file.toPath(), javaClass.classLoader)
-        return ConfigurationFactory(file, PrefixesConfig::class.java)
+
+        val factory = ConfigurationFactory(file, PrefixesConfig::class.java)
+        factory.loadOrCreate(PrefixesConfig())
+        return factory
+    }
+
+    private fun createMessages(): ConfigurationFactory<MessageConfig> {
+        val factory = ConfigurationFactory(File(platform.getDataDirectory(), "messages.yml"), MessageConfig::class.java)
+        factory.loadOrCreate(MessageConfig())
+        return factory
     }
 
     private fun createGroupRegistry(): GroupProviderRegistry {
-        val registry = GroupProviderRegistry(config, ConfigGroupProvider(config, platform.getPermissionChecker()))
+        val registry = GroupProviderRegistry(config, ConfigGroupProvider(logger, config, platform.getPermissionChecker()), platform)
 
         val luckPerms = platform.getLuckPerms()
         if (luckPerms != null) {
-            registry.register(LuckPermsGroupProvider(luckPerms))
+            registry.register(LuckPermsGroupProvider(logger, luckPerms))
         }
 
         return registry
@@ -81,8 +85,13 @@ class Prefixes(private val platform: PrefixesPlatform) {
 
     private fun createSync(): PrefixesSync? {
         if (!isSyncEnabled()) return null
-        return PrefixesSync(config)
+        return runCatching {
+            PrefixesSync(config, logger)
+        }.onFailure { throwable ->
+            logger.error("Failed to initialize prefixes sync", throwable)
+        }.getOrNull()
     }
+
 
     private fun isSyncEnabled(): Boolean {
         val current = config.get()

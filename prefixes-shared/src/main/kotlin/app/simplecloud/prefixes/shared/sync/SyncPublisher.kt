@@ -4,6 +4,7 @@ import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.prefixes.shared.config.FeaturesConfig
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
 import app.simplecloud.prefixes.shared.config.SyncChannels
+import app.simplecloud.prefixes.shared.platform.PrefixesLogger
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntryMapper
 import app.simplecloud.prefixes.shared.utilities.ComponentSerializer
@@ -14,11 +15,13 @@ import com.google.protobuf.MessageLite
 import io.nats.client.Connection
 import net.kyori.adventure.text.Component
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 
 class SyncPublisher(
     private val connection: Connection,
     private val subjects: PrefixesSubjects,
-    private val config: ConfigurationFactory<PrefixesConfig>
+    private val config: ConfigurationFactory<PrefixesConfig>,
+    private val logger: PrefixesLogger
 ) {
 
     fun publishChatMessage(message: Component) = publish(
@@ -65,6 +68,14 @@ class SyncPublisher(
     ) {
         val config = config.get()
         if (!feature(config.features) || !config.sync.enabled || !channel(config.sync.channels)) return
-        connection.publish(subjects.own(subject), message().toByteArray())
+
+        val target = subjects.own(subject)
+
+        try {
+            connection.publish(target, message().toByteArray())
+        } catch (e: Exception) {
+            logger.error("Failed to publish sync message on '$subject'", e)
+        }
     }
+
 }

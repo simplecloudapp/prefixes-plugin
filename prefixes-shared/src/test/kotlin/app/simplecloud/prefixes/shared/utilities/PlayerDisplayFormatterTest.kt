@@ -21,13 +21,13 @@ class PlayerDisplayFormatterTest {
     fun `uses the configured display name when enabled`() {
         assertEquals(
             Component.text("Fancy"),
-            PlayerDisplayFormatter.displayName(data, "Player", enabled = true)
+            PlayerDisplayFormatter.formatDisplayName(data, "Player", enabled = true)
         )
     }
 
     @Test
     fun `uses the minecraft player name when display names are disabled`() {
-        val displayName = PlayerDisplayFormatter.displayName(data, "Player", enabled = false)
+        val displayName = PlayerDisplayFormatter.formatDisplayName(data, "Player", enabled = false)
 
         assertEquals(Component.text("Player"), displayName)
         assertEquals(

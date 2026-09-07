@@ -4,6 +4,7 @@ import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.prefixes.shared.config.FeaturesConfig
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
 import app.simplecloud.prefixes.shared.config.SyncChannels
+import app.simplecloud.prefixes.shared.platform.PrefixesLogger
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntryMapper
 import app.simplecloud.prefixes.shared.utilities.ComponentSerializer
@@ -19,7 +20,8 @@ import java.util.UUID
 class SyncSubscriber(
     connection: Connection,
     private val subjects: PrefixesSubjects,
-    private val config: ConfigurationFactory<PrefixesConfig>
+    private val config: ConfigurationFactory<PrefixesConfig>,
+    private val logger: PrefixesLogger
 ) {
 
     private val dispatcher = connection.createDispatcher(null)
@@ -65,7 +67,11 @@ class SyncSubscriber(
     }
 
     fun close() {
-        dispatcher.drain(Duration.ofSeconds(1))
+        try {
+            dispatcher.drain(Duration.ofSeconds(1))
+        } catch (e: Exception) {
+            logger.error("Failed to drain prefixes sync dispatcher", e)
+        }
     }
 
     private fun subscribe(
@@ -78,16 +84,32 @@ class SyncSubscriber(
         if (!feature(config.features) || !config.sync.enabled || !channel(config.sync.channels)) return
 
         subjects.patterns(config.sync.sources, subject).forEach { pattern ->
-            dispatcher.subscribe(pattern) { message ->
-                val currentConfig = this.config.get()
-                if (feature(currentConfig.features) &&
-                    currentConfig.sync.enabled &&
-                    channel(currentConfig.sync.channels) &&
-                    !subjects.isOwn(message.subject)
-                ) {
+            runCatching { subscribe(pattern, feature, channel, handler) }.onFailure { throwable ->
+                logger.error("Failed to subscribe to the sync subject '$pattern'", throwable)
+            }
+        }
+    }
+
+    private fun subscribe(
+        pattern: String,
+        feature: (FeaturesConfig) -> Boolean,
+        channel: (SyncChannels) -> Boolean,
+        handler: (Message) -> Unit
+    ) {
+        dispatcher.subscribe(pattern) { message ->
+            val currentConfig = this.config.get()
+            if (feature(currentConfig.features) &&
+                currentConfig.sync.enabled &&
+                channel(currentConfig.sync.channels) &&
+                !subjects.isOwn(message.subject)
+            ) {
+                try {
                     handler(message)
+                } catch (e: Exception) {
+                    logger.error("Failed to handle sync message on '${message.subject}'", e)
                 }
             }
         }
     }
+
 }

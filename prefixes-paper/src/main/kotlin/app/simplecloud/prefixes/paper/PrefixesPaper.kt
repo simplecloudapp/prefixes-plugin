@@ -10,8 +10,8 @@ import app.simplecloud.prefixes.paper.platform.PaperPlatformImpl
 import app.simplecloud.prefixes.paper.platform.PaperPrefixesListener
 import app.simplecloud.prefixes.shared.Prefixes
 import app.simplecloud.prefixes.shared.command.PrefixesCommand
-import app.simplecloud.prefixes.shared.config.LUCKPERMS_SOURCE
 import app.simplecloud.prefixes.shared.platform.PrefixesPlatform
+import app.simplecloud.prefixes.shared.utilities.Constants
 import org.bukkit.Bukkit
 import org.bukkit.plugin.ServicePriority
 import org.bukkit.plugin.java.JavaPlugin
@@ -81,12 +81,12 @@ class PrefixesPaper : JavaPlugin() {
 
     private fun registerLuckPermsListener(prefixes: Prefixes, platform: PrefixesPlatform, manager: PaperDisplayManager) {
         val source = prefixes.config.get().general.source
-        logger.info("Using Source Type: $source")
-        if (!source.equals(LUCKPERMS_SOURCE, ignoreCase = true)) return
+        platform.getLogger().info("Using Source Type: $source")
+        if (!source.equals(Constants.LUCKPERMS_SOURCE, ignoreCase = true)) return
 
         val luckPerms = platform.getLuckPerms()
         if (luckPerms == null) {
-            logger.warning("Source Type is set to $LUCKPERMS_SOURCE, but LuckPerms was not found on the server!")
+            platform.getLogger().warn("Source Type is set to ${Constants.LUCKPERMS_SOURCE}, but LuckPerms was not found on the server!")
             return
         }
 

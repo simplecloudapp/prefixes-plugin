@@ -41,7 +41,7 @@ class PlayerListener(
 
         val player = event.player
         val data = manager.getPlayer(player.uniqueId) ?: return
-        val displayName = PlayerDisplayFormatter.displayName(data, player.name, features.displayName)
+        val displayName = PlayerDisplayFormatter.formatDisplayName(data, player.name, features.displayName)
 
         val message = PlayerDisplayFormatter.formatChatMessage(
             data,

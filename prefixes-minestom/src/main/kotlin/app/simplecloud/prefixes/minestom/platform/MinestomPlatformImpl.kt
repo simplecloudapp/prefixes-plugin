@@ -1,6 +1,7 @@
 package app.simplecloud.prefixes.minestom.platform
 
 import app.simplecloud.plugin.api.shared.permission.PermissionChecker
+import app.simplecloud.prefixes.shared.platform.PrefixesLogger
 import app.simplecloud.prefixes.shared.platform.PrefixesPlatform
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.LuckPermsProvider
@@ -14,6 +15,8 @@ class MinestomPlatformImpl(
     private val permissionChecker: PermissionChecker<UUID>,
     private val luckPerms: LuckPerms?
 ) : PrefixesPlatform {
+
+    override fun getLogger(): PrefixesLogger = MinestomPrefixesLogger()
 
     override fun getDataDirectory(): File = path.toFile()
 

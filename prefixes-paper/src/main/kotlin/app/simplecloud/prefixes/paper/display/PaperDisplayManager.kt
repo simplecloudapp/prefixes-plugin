@@ -23,6 +23,8 @@ class PaperDisplayManager(
     private val prefixes: Prefixes,
     private val customNameManager: CustomNameManager
 ) {
+    private val logger = prefixes.getPlatform().getLogger()
+
     private val cache = ConcurrentHashMap<UUID, PrefixesPlayerData>()
     private val teams = ConcurrentHashMap<UUID, PaperPlayerTeam>()
     private val entries = ConcurrentHashMap<UUID, TablistEntry>()
@@ -43,8 +45,8 @@ class PaperDisplayManager(
     fun updatePlayer(player: Player) {
         prefixes.api.getPrefixData(player.uniqueId).thenAccept { data ->
             Bukkit.getScheduler().runTask(plugin, Runnable { applyPrefixData(player, data) })
-        }.exceptionally { _ ->
-            plugin.logger.warning("Failed to update prefix data of ${player.name}")
+        }.exceptionally { throwable ->
+            logger.error("Failed to update prefix data of ${player.name}", throwable)
             null
         }
     }
@@ -62,7 +64,7 @@ class PaperDisplayManager(
         cache[player.uniqueId] = data
 
         val features = prefixes.config.get().features
-        val displayName = PlayerDisplayFormatter.displayName(
+        val displayName = PlayerDisplayFormatter.formatDisplayName(
             data,
             player.name,
             features.displayName
@@ -91,15 +93,7 @@ class PaperDisplayManager(
 
     private fun createTeam(player: Player, data: PrefixesPlayerData, features: FeaturesConfig): PaperPlayerTeam? {
         return when {
-            features.tablist -> PaperPlayerTeam(
-                player.name,
-                data.priority,
-                data.prefix,
-                data.suffix,
-                data.color,
-                hideNameTag = features.displayName
-            )
-
+            features.tablist -> PaperPlayerTeam(player.name, data.priority, data.prefix, data.suffix, data.color, features.displayName)
             features.displayName -> PaperPlayerTeam(player.name, priority = 0)
             else -> null
         }
@@ -134,7 +128,7 @@ class PaperDisplayManager(
         Bukkit.getOnlinePlayers().forEach { player ->
             val data = cache[player.uniqueId] ?: return@forEach
             val features = prefixes.config.get().features
-            val displayName = PlayerDisplayFormatter.displayName(
+            val displayName = PlayerDisplayFormatter.formatDisplayName(
                 data,
                 player.name,
                 features.displayName

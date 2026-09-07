@@ -1,9 +1,7 @@
 package app.simplecloud.prefixes.minestom.display
 
 import app.simplecloud.prefixes.api.group.PrefixesPlayerData
-import app.simplecloud.prefixes.minestom.permission.MinestomPermissions
 import app.simplecloud.prefixes.shared.Prefixes
-import app.simplecloud.prefixes.shared.config.CONFIG_SOURCE
 import app.simplecloud.prefixes.shared.config.FeaturesConfig
 import app.simplecloud.prefixes.shared.sync.tablist.ProfileProperty
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
@@ -15,28 +13,22 @@ import net.minestom.server.entity.Player
 import net.minestom.server.scoreboard.Team
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.logging.Level
-import java.util.logging.Logger
 
 class MinestomDisplayManager(
     private val prefixes: Prefixes,
-    private val permissions: MinestomPermissions
 ) {
 
-    private val logger = Logger.getLogger("simplecloud-prefixes")
+    private val logger = prefixes.getPlatform().getLogger()
     private val cache = ConcurrentHashMap<UUID, PrefixesPlayerData>()
     private val teams = ConcurrentHashMap<UUID, Team>()
     private val nameTags = ConcurrentHashMap<UUID, MinestomNameTag>()
     private val entries = ConcurrentHashMap<UUID, TablistEntry>()
-    private val warned = AtomicBoolean()
 
     fun getPlayer(id: UUID): PrefixesPlayerData? {
         return cache[id]
     }
 
     fun addPlayer(player: Player) {
-        warnMissingPermissionHandler()
         updatePlayer(player)
     }
 
@@ -46,7 +38,7 @@ class MinestomDisplayManager(
                 applyPrefixData(player, data)
             }
         }.exceptionally { throwable ->
-            logger.log(Level.WARNING, "Failed to update prefix data of ${player.username}", throwable)
+            logger.error("Failed to update prefix data of ${player.username}", throwable)
             null
         }
     }
@@ -94,11 +86,7 @@ class MinestomDisplayManager(
 
         val features = prefixes.config.get().features
         val displayName = displayName(data, player, features)
-
-        player.displayName = when {
-            features.tablist -> PlayerDisplayFormatter.formatTablistName(data, displayName)
-            else -> null
-        }
+        player.displayName = if (features.tablist) PlayerDisplayFormatter.formatTablistName(data, displayName) else null
 
         updateTeam(player, data, features)
         updateNameTag(player, displayName, features)
@@ -115,15 +103,7 @@ class MinestomDisplayManager(
 
     private fun createTeam(player: Player, data: PrefixesPlayerData, features: FeaturesConfig): Team? {
         return when {
-            features.tablist -> MinestomPlayerTeam.create(
-                player.username,
-                data.priority,
-                data.prefix,
-                data.suffix,
-                data.color,
-                hideNameTag = features.displayName
-            )
-
+            features.tablist -> MinestomPlayerTeam.create(player.username, data.priority, data.prefix, data.suffix, data.color, features.displayName)
             // Only there to hide the vanilla name tag, which the name tag entity replaces.
             features.displayName -> MinestomPlayerTeam.create(player.username, priority = 0, hideNameTag = true)
             else -> null
@@ -141,10 +121,7 @@ class MinestomDisplayManager(
             return
         }
 
-        val nameTag = nameTags.computeIfAbsent(player.uuid) {
-            MinestomNameTag(player).also(MinestomNameTag::spawn)
-        }
-
+        val nameTag = nameTags.computeIfAbsent(player.uuid) { MinestomNameTag(player).also(MinestomNameTag::spawn) }
         nameTag.setName(displayName)
     }
 
@@ -180,14 +157,7 @@ class MinestomDisplayManager(
     }
 
     private fun displayName(data: PrefixesPlayerData, player: Player, features: FeaturesConfig): Component {
-        return PlayerDisplayFormatter.displayName(data, player.username, features.displayName)
-    }
-
-    private fun warnMissingPermissionHandler() {
-        if (permissions.hasHandler || !warned.compareAndSet(false, true)) return
-        if (!prefixes.registry.getCurrentGroupProvider().getName().equals(CONFIG_SOURCE, ignoreCase = true)) return
-
-        logger.warning("Source Type is set to $CONFIG_SOURCE, but no permission handler was set!")
+        return PlayerDisplayFormatter.formatDisplayName(data, player.username, features.displayName)
     }
 
 }

@@ -3,6 +3,7 @@ package app.simplecloud.prefixes.shared.group.luckperms
 import app.simplecloud.plugin.api.shared.extension.miniMessage
 import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.api.group.PrefixesGroup
+import app.simplecloud.prefixes.shared.platform.PrefixesLogger
 import app.simplecloud.prefixes.shared.utilities.ColorParser
 import net.kyori.adventure.text.Component
 import net.luckperms.api.LuckPerms
@@ -16,6 +17,7 @@ import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 class LuckPermsGroupProvider(
+    private val logger: PrefixesLogger,
     private val luckPerms: LuckPerms
 ) : GroupProvider {
 
@@ -35,7 +37,12 @@ class LuckPermsGroupProvider(
             return CompletableFuture.completedFuture(resolveGroup(user))
         }
 
-        return luckPerms.userManager.loadUser(id).thenApply(::resolveGroup)
+        return luckPerms.userManager.loadUser(id)
+            .thenApply(::resolveGroup)
+            .exceptionally { throwable ->
+                logger.error("Failed to load LuckPerms user $id", throwable)
+                null
+            }
     }
 
     override fun addGroup(group: PrefixesGroup): CompletableFuture<Boolean> {

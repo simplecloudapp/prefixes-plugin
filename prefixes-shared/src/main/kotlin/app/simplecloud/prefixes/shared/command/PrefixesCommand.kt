@@ -51,12 +51,11 @@ class PrefixesCommand<C : PrefixesSender>(
                     }
 
                     val reloaded = prefixes.reload()
-                    val message = when {
-                        reloaded -> messages.command.reload.success
-                        else -> messages.command.reload.failed
+                    if (reloaded) {
+                        sender.sendMessage(messages.msg(messages.command.reload.success))
+                    } else {
+                        sender.sendMessage(messages.msg(messages.command.reload.failed))
                     }
-
-                    sender.sendMessage(messages.msg(message))
                 }
         )
     }

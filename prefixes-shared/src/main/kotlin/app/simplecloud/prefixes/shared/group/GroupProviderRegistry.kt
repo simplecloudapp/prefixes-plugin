@@ -3,48 +3,41 @@ package app.simplecloud.prefixes.shared.group
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
+import app.simplecloud.prefixes.shared.platform.PrefixesPlatform
 import java.util.concurrent.ConcurrentHashMap
-import java.util.logging.Logger
 
 class GroupProviderRegistry(
     private val config: ConfigurationFactory<PrefixesConfig>,
-    private val provider: GroupProvider
+    private val provider: GroupProvider,
+    private val platform: PrefixesPlatform
 ) {
 
-    private val logger = Logger.getLogger("simplecloud-prefixes")
-
+    private val logger = platform.getLogger()
     private val providers = ConcurrentHashMap<String, GroupProvider>()
-    private val sources = ConcurrentHashMap.newKeySet<String>()
 
     init {
         register(provider)
     }
 
     fun register(provider: GroupProvider) {
-        val key = toKey(provider.getName())
+        val key = provider.getName().trim().lowercase()
         providers[key] = provider
-        sources.remove(key)
     }
 
     fun unregister(name: String) {
-        providers.remove(toKey(name))
+        providers.remove(name.trim().lowercase())
     }
 
     fun getAllGroupProviders(): Collection<GroupProvider> = providers.values.toList()
 
     fun getCurrentGroupProvider(): GroupProvider {
-        val source = toKey(config.get().general.source)
-        val provider = providers[source] ?: return reportMissing(source)
+        val source = config.get().general.source.trim().lowercase()
+        val provider = providers[source] ?: return warnMissingProvider(source)
         return provider
     }
 
-    private fun reportMissing(source: String): GroupProvider {
-        if (sources.add(source)) {
-            logger.warning("No group provider named '$source' is registered, using '${provider.getName()}' instead")
-        }
-
+    private fun warnMissingProvider(source: String): GroupProvider {
+        logger.warn("No group provider named '$source' is registered, using '${provider.getName()}' instead")
         return provider
     }
-
-    private fun toKey(name: String): String = name.trim().lowercase()
 }

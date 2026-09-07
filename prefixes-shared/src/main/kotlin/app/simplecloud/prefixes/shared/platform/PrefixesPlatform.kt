@@ -6,17 +6,22 @@ import java.io.File
 import java.util.UUID
 
 /**
- * Represents a platform on which the plugin runs.
+ * Represents a platform on which prefixes runs.
  */
 interface PrefixesPlatform {
 
     /**
-     * Returns the platform-specific data directory.
+     * Returns this platform's logger.
+     */
+    fun getLogger(): PrefixesLogger
+
+    /**
+     * Returns this platform's data directory.
      */
     fun getDataDirectory(): File
 
     /**
-     * Returns the platform-specific permission checker.
+     * Returns this platform's permission checker.
      */
     fun getPermissionChecker(): PermissionChecker<UUID>
 

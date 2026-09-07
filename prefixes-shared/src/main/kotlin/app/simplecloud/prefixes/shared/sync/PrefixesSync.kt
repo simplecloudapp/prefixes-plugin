@@ -3,23 +3,34 @@ package app.simplecloud.prefixes.shared.sync
 import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
+import app.simplecloud.prefixes.shared.platform.PrefixesLogger
 import io.nats.client.Connection
 import io.nats.client.Nats
 import io.nats.client.Options
 
-class PrefixesSync(config: ConfigurationFactory<PrefixesConfig>) {
+class PrefixesSync(
+    config: ConfigurationFactory<PrefixesConfig>,
+    private val logger: PrefixesLogger
+) {
 
     private val api = CloudApi.create()
     private val connection = createNatsConnection()
     private val subjects = PrefixesSubjects(api.networkId)
 
-    val publisher = SyncPublisher(connection, subjects, config)
-    val subscriber = SyncSubscriber(connection, subjects, config)
+    val publisher = SyncPublisher(connection, subjects, config, logger)
+    val subscriber = SyncSubscriber(connection, subjects, config, logger)
 
     fun shutdown() {
-        subscriber.close()
-        connection.close()
-        api.close()
+        runCatching {
+            logger.info("Shutdown prefixes sync...")
+            subscriber.close()
+            connection.close()
+            api.close()
+        }.onFailure { throwable ->
+            logger.error("Failed to shutdown sync", throwable)
+        }.onSuccess {
+            logger.info("Successfully shutdown sync")
+        }
     }
 
     private fun createNatsConnection(): Connection {

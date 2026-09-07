@@ -7,12 +7,14 @@ import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.api.group.PrefixesGroup
 import app.simplecloud.prefixes.shared.config.ConfigGroup
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
+import app.simplecloud.prefixes.shared.platform.PrefixesLogger
 import app.simplecloud.prefixes.shared.utilities.ColorParser
 import net.kyori.adventure.text.Component
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 class ConfigGroupProvider(
+    private val logger: PrefixesLogger,
     private val configFactory: ConfigurationFactory<PrefixesConfig>,
     private val permissionChecker: PermissionChecker<UUID>
 ) : GroupProvider {
@@ -46,8 +48,13 @@ class ConfigGroupProvider(
                     return@synchronized false
                 }
 
-                configFactory.save(config.copy(groups = config.groups + createConfigGroup(group)))
-                true
+                try {
+                    configFactory.save(config.copy(groups = config.groups + createConfigGroup(group)))
+                    true
+                } catch (e: Exception) {
+                    logger.error("Failed to save group '${group.name}' to config", e)
+                    false
+                }
             }
         }
     }
