@@ -85,13 +85,27 @@ class Prefixes(private val platform: PrefixesPlatform) {
 
     private fun createSync(): PrefixesSync? {
         if (!isSyncEnabled()) return null
+
+        if (!isSimpleCloudAvailable()) {
+            logger.warn("Sync is enabled in the config, but SimpleCloud was not found on this server.")
+            return null
+        }
+
         return runCatching {
             PrefixesSync(config, logger)
         }.onFailure { throwable ->
-            logger.error("Failed to initialize prefixes sync", throwable)
+            logger.error("Failed to initialize sync", throwable)
         }.getOrNull()
     }
 
+    private fun isSimpleCloudAvailable(): Boolean {
+        return try {
+            Class.forName("app.simplecloud.api.CloudApi")
+            true
+        } catch (_: ClassNotFoundException) {
+            false
+        }
+    }
 
     private fun isSyncEnabled(): Boolean {
         val current = config.get()

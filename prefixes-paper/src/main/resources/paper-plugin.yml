@@ -8,7 +8,7 @@ dependencies:
   server:
     simplecloud-api:
       load: BEFORE
-      required: true
+      required: false
       join-classpath: true
     LuckPerms:
       load: BEFORE
