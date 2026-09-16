@@ -10,7 +10,7 @@ protobuf = "0.10.0"
 simplecloud-api = "0.1.0-platform.40"
 simplecloud-plugin-api = "0.0.1-platform.1778966459069-b1e45e2"
 
-paper = "26.2.build.+"
+paper = "26.3.build.+"
 
 adventure = "5.2.0"
 luckperms = "5.5"
