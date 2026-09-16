@@ -50,3 +50,11 @@ modrinth {
     changelog.set("https://docs.simplecloud.app/changelog")
     syncBodyFrom.set(rootProject.file("README.md").readText())
 }
+
+// Paper bootstrap writes logs; keep regression-test output under build/.
+tasks.test {
+    workingDir = layout.buildDirectory.dir("test-server").get().asFile
+    doFirst {
+        workingDir.mkdirs()
+    }
+}
