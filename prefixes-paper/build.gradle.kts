@@ -6,7 +6,7 @@ plugins {
 val customNamesRoot = rootProject.layout.projectDirectory.dir("custom-names")
 require(
     customNamesRoot.dir("custom-names-api/src/main/kotlin").asFile.isDirectory &&
-        customNamesRoot.dir("custom-names-plugin/src/main/kotlin").asFile.isDirectory
+        customNamesRoot.dir("custom-names-paper/src/main/kotlin").asFile.isDirectory
 ) {
     "The custom-names submodule is missing. Run `git submodule update --init --recursive`."
 }
@@ -23,7 +23,7 @@ sourceSets {
     main {
         kotlin {
             srcDir(customNamesRoot.dir("custom-names-api/src/main/kotlin"))
-            srcDir(customNamesRoot.dir("custom-names-plugin/src/main/kotlin"))
+            srcDir(customNamesRoot.dir("custom-names-paper/src/main/kotlin"))
             exclude("**/CustomNamesPlugin.kt")
         }
     }

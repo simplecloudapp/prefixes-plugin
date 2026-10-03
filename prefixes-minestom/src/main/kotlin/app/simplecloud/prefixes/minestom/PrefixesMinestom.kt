@@ -20,6 +20,7 @@ import net.minestom.server.event.EventNode
 import net.minestom.server.timer.TaskSchedule
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.minestom.MinestomCommandManager
+import space.chunks.customname.minestom.CustomNamesMinestom
 import java.nio.file.Path
 import java.util.function.BiPredicate
 
@@ -34,7 +35,7 @@ class PrefixesMinestom internal constructor(
     private val permissions = MinestomPermissions(permissionHandler)
     private val platform = MinestomPlatformImpl(directory, permissions.getChecker(), luckPerms)
     private val prefixes = Prefixes(platform)
-    private val manager = MinestomDisplayManager(prefixes)
+    private val manager = MinestomDisplayManager(prefixes, CustomNamesMinestom.getManager())
     private val tablist = MinestomTablist()
     private val logger = prefixes.getPlatform().getLogger()
 
@@ -42,6 +43,7 @@ class PrefixesMinestom internal constructor(
     fun getApi(): PrefixesApi = prefixes.api
 
     fun enable(): PrefixesMinestom {
+        CustomNamesMinestom.init()
         prefixes.startup()
         prefixes.addListener(MinestomPrefixesListener(prefixes, manager, tablist))
 
@@ -64,6 +66,7 @@ class PrefixesMinestom internal constructor(
         MinecraftServer.getGlobalEventHandler().removeChild(node)
         manager.clear()
         tablist.clear()
+        CustomNamesMinestom.shutdown()
         prefixes.shutdown()
     }
 

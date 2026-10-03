@@ -17,7 +17,7 @@ import org.bukkit.plugin.ServicePriority
 import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.PaperCommandManager
-import space.chunks.customname.plugin.CustomNameManagerImpl
+import space.chunks.customname.paper.CustomNameManagerImpl
 
 class PrefixesPaper : JavaPlugin() {
 
