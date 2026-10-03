@@ -1,33 +1,33 @@
 [versions]
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 kotlinx-coroutines = "1.11.0"
 
 shadow = "9.6.1"
 minotaur = "2.9.0"
-paperweight = "2.0.0-beta.21"
+paperweight = "2.0.0-beta.24"
 protobuf = "0.10.0"
 
-simplecloud-api = "0.1.0-platform.54-dev.1.1-770dcc6"
+simplecloud-api = "0.1.0-platform.58-dev.5.1-fe01ce5"
 simplecloud-plugin-api = "0.0.1-platform.1778966459069-b1e45e2"
 
-paper = "26.2.build.+"
-minestom = "2026.08.16-26.2"
+paper = "26.3.build.+"
+minestom = "26_3-SNAPSHOT"
 
 adventure = "5.2.0"
 luckperms = "5.5"
 reflection-remapper = "0.1.3"
 
-cloud-command = "2.0.0"
-cloud-command-platform = "2.0.0"
+cloud-command = "2.1.0"
+cloud-command-platform = "2.0.1"
 cloud-command-minestom = "2.2.0-SNAPSHOT"
 
 configurate = "4.2.0"
 
-protoc = "4.35.1"
-protobuf-kotlin = "4.35.1"
+protoc = "4.36.2"
+protobuf-kotlin = "4.36.2"
 
-jnats = "2.26.2"
-slf4j = "2.0.18"
+jnats = "2.26.3"
+slf4j = "2.0.20"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

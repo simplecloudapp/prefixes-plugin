@@ -5,7 +5,6 @@ plugins {
 include(
     "prefixes-api",
     "prefixes-minestom",
-    "prefixes-minestom:example",
     "prefixes-paper",
     "prefixes-shared"
 )
