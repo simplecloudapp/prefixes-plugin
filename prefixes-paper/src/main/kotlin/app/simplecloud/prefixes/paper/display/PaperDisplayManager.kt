@@ -12,6 +12,7 @@ import net.kyori.adventure.text.Component
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.entity.CraftPlayer
+import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 import space.chunks.customname.api.CustomNameManager
@@ -21,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap
 class PaperDisplayManager(
     private val plugin: Plugin,
     private val prefixes: Prefixes,
-    private val customNameManager: CustomNameManager
+    private val customNameManager: CustomNameManager<Entity>
 ) {
     private val logger = prefixes.getPlatform().getLogger()
 

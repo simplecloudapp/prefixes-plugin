@@ -9,19 +9,21 @@ import app.simplecloud.prefixes.shared.sync.tablist.TablistGameMode
 import app.simplecloud.prefixes.shared.utilities.PlayerDisplayFormatter
 import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
+import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player
 import net.minestom.server.scoreboard.Team
+import space.chunks.customname.api.CustomNameManager
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 class MinestomDisplayManager(
     private val prefixes: Prefixes,
+    private val customNameManager: CustomNameManager<Entity>
 ) {
 
     private val logger = prefixes.getPlatform().getLogger()
     private val cache = ConcurrentHashMap<UUID, PrefixesPlayerData>()
     private val teams = ConcurrentHashMap<UUID, Team>()
-    private val nameTags = ConcurrentHashMap<UUID, MinestomNameTag>()
     private val entries = ConcurrentHashMap<UUID, TablistEntry>()
 
     fun getPlayer(id: UUID): PrefixesPlayerData? {
@@ -46,19 +48,13 @@ class MinestomDisplayManager(
     fun removePlayer(player: Player) {
         cache.remove(player.uuid)
         removeTeam(player.uuid)
-        removeNameTag(player.uuid)
+        customNameManager.unregister(player)
 
         entries.remove(player.uuid)
         prefixes.sync?.publisher?.publishTablistRemove(player.uuid)
     }
 
-    fun setSneaking(player: Player, sneaking: Boolean) {
-        nameTags[player.uuid]?.setSneaking(sneaking)
-    }
-
     fun refreshNameTag(player: Player) {
-        if (removeNameTag(player.uuid) == null) return
-
         val data = cache[player.uuid] ?: return
         val features = prefixes.config.get().features
         updateNameTag(player, displayName(data, player, features), features)
@@ -68,7 +64,6 @@ class MinestomDisplayManager(
         cache.clear()
         entries.clear()
         teams.keys.toList().forEach(::removeTeam)
-        nameTags.keys.toList().forEach(::removeNameTag)
     }
 
     fun sync(force: Boolean = false) {
@@ -117,16 +112,11 @@ class MinestomDisplayManager(
 
     private fun updateNameTag(player: Player, displayName: Component, features: FeaturesConfig) {
         if (!features.displayName) {
-            removeNameTag(player.uuid)
+            customNameManager.unregister(player)
             return
         }
 
-        val nameTag = nameTags.computeIfAbsent(player.uuid) { MinestomNameTag(player).also(MinestomNameTag::spawn) }
-        nameTag.setName(displayName)
-    }
-
-    private fun removeNameTag(id: UUID): MinestomNameTag? {
-        return nameTags.remove(id)?.also(MinestomNameTag::remove)
+        customNameManager.forEntity(player).setName(displayName)
     }
 
     private fun publish(player: Player, data: PrefixesPlayerData, displayName: Component, force: Boolean = false) {

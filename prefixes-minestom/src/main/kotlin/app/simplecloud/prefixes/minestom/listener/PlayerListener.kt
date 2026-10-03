@@ -9,7 +9,6 @@ import net.minestom.server.event.Event
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.player.PlayerChatEvent
 import net.minestom.server.event.player.PlayerDisconnectEvent
-import net.minestom.server.event.player.PlayerInputEvent
 import net.minestom.server.event.player.PlayerSpawnEvent
 
 class PlayerListener(
@@ -22,11 +21,10 @@ class PlayerListener(
         node.addListener(PlayerSpawnEvent::class.java, ::onSpawn)
         node.addListener(PlayerDisconnectEvent::class.java, ::onDisconnect)
         node.addListener(PlayerChatEvent::class.java, ::onChat)
-        node.addListener(PlayerInputEvent::class.java, ::onInput)
     }
 
     private fun onSpawn(event: PlayerSpawnEvent) {
-        // The entity carrying the name tag stays behind in the previous instance.
+        // custom-names drops the name tag when the player leaves an instance.
         if (!event.isFirstSpawn) {
             manager.refreshNameTag(event.player)
             return
@@ -56,12 +54,6 @@ class PlayerListener(
 
         event.formattedMessage = message
         prefixes.sync?.publisher?.publishChatMessage(message)
-    }
-
-    private fun onInput(event: PlayerInputEvent) {
-        if (event.hasPressedShiftKey() || event.hasReleasedShiftKey()) {
-            manager.setSneaking(event.player, event.hasPressedShiftKey())
-        }
     }
 
 }
