@@ -9,10 +9,11 @@ plugins {
 
 allprojects {
     group = "app.simplecloud.plugin"
-    version = "1.0.1"
+    version = "1.0.3"
 
     repositories {
         mavenCentral()
+        maven("https://repo.papermc.io/repository/maven-public/")
         maven("https://oss.sonatype.org/content/repositories/snapshots")
         maven("https://oss.sonatype.org/content/repositories/central")
         maven("https://repo.papermc.io/repository/maven-public/")
