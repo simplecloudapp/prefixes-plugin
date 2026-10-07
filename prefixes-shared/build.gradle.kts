@@ -6,6 +6,7 @@ dependencies {
     api(project(":prefixes-api"))
     api(libs.simplecloud.plugin.api)
     implementation(libs.jnats)
+    implementation(libs.slf4j.api)
     implementation(libs.protobuf.kotlin)
     implementation(libs.bundles.configurate)
     implementation(libs.bundles.cloud.command)
@@ -42,6 +43,6 @@ protobuf {
 
 configurations.all {
     resolutionStrategy {
-        force("com.google.protobuf:protobuf-java:4.35.1")
+        force("com.google.protobuf:protobuf-java:4.36.2")
     }
 }

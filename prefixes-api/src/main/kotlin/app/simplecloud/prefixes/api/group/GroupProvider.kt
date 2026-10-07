@@ -4,33 +4,19 @@ import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 /**
- * Represents a source provider for groups.
+ * A source of prefix groups, e.g. the config or LuckPerms.
  */
 interface GroupProvider {
 
-    /**
-     * The name of this provider.
-     */
+    /** Returns the name of this provider. */
     fun getName(): String
 
-    /**
-     * Returns all registered prefix groups.
-     */
+    /** Returns all groups of this provider. */
     fun getGroups(): CompletableFuture<Collection<PrefixesGroup>>
 
-    /**
-     * Gets the highest-priority applicable group of a player.
-     *
-     * @param id The player's UUID
-     * @return A future completing with the player's highest-priority group, or null if none matches.
-     */
+    /** Returns the highest-priority group of the player [id], or null if none matches. */
     fun getGroup(id: UUID): CompletableFuture<PrefixesGroup?>
 
-    /**
-     * Adds a new group to this provider's source.
-     *
-     * @param group The group to add
-     * @return A future completing with `true` if the group was created, or `false` if a group with that name already exists.
-     */
+    /** Adds [group] to this provider, completes with `false` if it already exists. */
     fun addGroup(group: PrefixesGroup): CompletableFuture<Boolean>
 }

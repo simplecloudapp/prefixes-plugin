@@ -2,13 +2,19 @@ package app.simplecloud.prefixes.paper.display
 
 import app.simplecloud.prefixes.api.group.PrefixesPlayerData
 import app.simplecloud.prefixes.shared.Prefixes
-import app.simplecloud.prefixes.shared.config.FeaturesConfig
+import app.simplecloud.prefixes.shared.data.ViewerKey
 import app.simplecloud.prefixes.shared.sync.tablist.ProfileProperty
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
 import app.simplecloud.prefixes.shared.sync.tablist.TablistGameMode
+import app.simplecloud.prefixes.shared.PrefixesConstants
 import app.simplecloud.prefixes.shared.utilities.PlayerDisplayFormatter
 import com.destroystokyo.paper.ClientOption
+import io.papermc.paper.adventure.PaperAdventure
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
+import net.minecraft.network.protocol.Packet
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
 import org.bukkit.Bukkit
 import org.bukkit.craftbukkit.entity.CraftPlayer
@@ -16,6 +22,7 @@ import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 import space.chunks.customname.api.CustomNameManager
+import java.util.EnumSet
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -24,153 +31,156 @@ class PaperDisplayManager(
     private val prefixes: Prefixes,
     private val customNameManager: CustomNameManager<Entity>
 ) {
-    private val logger = prefixes.getPlatform().getLogger()
 
-    private val cache = ConcurrentHashMap<UUID, PrefixesPlayerData>()
-    private val teams = ConcurrentHashMap<UUID, PaperPlayerTeam>()
+    private val registry = prefixes.dataRegistry
+
+    private val teams = ConcurrentHashMap<ViewerKey, PaperPlayerTeam>()
     private val entries = ConcurrentHashMap<UUID, TablistEntry>()
-
-    fun getPlayer(id: UUID): PrefixesPlayerData? {
-        return cache[id]
-    }
 
     fun addPlayer(player: Player) {
         updatePlayer(player)
         Bukkit.getScheduler().runTask(plugin, Runnable {
-            if (player.isOnline && cache[player.uniqueId] == null) {
-                publish(player, Component.text(player.name), 0)
-            }
+            if (player.isOnline && !registry.isLoaded(player.uniqueId)) publish(player)
         })
     }
 
     fun updatePlayer(player: Player) {
-        prefixes.api.getPrefixData(player.uniqueId).thenAccept { data ->
-            Bukkit.getScheduler().runTask(plugin, Runnable { applyPrefixData(player, data) })
-        }.exceptionally { throwable ->
-            logger.error("Failed to update prefix data of ${player.name}", throwable)
-            null
+        PrefixesConstants.SCOPE.launch {
+            val group = prefixes.api.getPrimaryGroup(player.uniqueId).await()
+            Bukkit.getScheduler().runTask(plugin, Runnable {
+                if (!player.isOnline) return@Runnable
+                registry.loadGroup(player.uniqueId, group)
+                render(player)
+            })
         }
     }
 
     fun removePlayer(player: Player) {
-        cache.remove(player.uniqueId)
-        removeTeam(player.uniqueId)
+        val id = player.uniqueId
+        registry.remove(id)
+        teams.keys.filter { key -> key.target == id || key.viewer == id }.forEach { key ->
+            if (key.viewer == id) teams.remove(key) else removeTeam(key)
+        }
 
-        entries.remove(player.uniqueId)
-        prefixes.sync?.publisher?.publishTablistRemove(player.uniqueId)
+        entries.remove(id)
+        prefixes.sync?.publisher?.publishTablistRemove(id)
     }
 
-    private fun applyPrefixData(player: Player, data: PrefixesPlayerData) {
+    fun clear() {
+        entries.clear()
+        teams.keys.toList().forEach(::removeTeam)
+        Bukkit.getOnlinePlayers().forEach { player -> player.playerListName(null) }
+    }
+
+    fun render(player: Player) {
         if (!player.isOnline) return
-        cache[player.uniqueId] = data
-
+        val data = registry.getData(player.uniqueId) ?: return
         val features = prefixes.config.get().features
-        val displayName = PlayerDisplayFormatter.formatDisplayName(
-            data,
-            player.name,
-            features.displayName
-        )
 
-        player.playerListName(
-            when {
-                features.tablist -> PlayerDisplayFormatter.formatTablistName(data, displayName)
-                else -> null
-            }
-        )
+        player.playerListName(if (features.tablist) formatTablistName(player, data) else null)
+        val team = createTeam(player, data)
+        Bukkit.getOnlinePlayers().forEach { viewer -> renderFor(player, viewer, team) }
 
-        updateTeam(player, data, features)
-        updateCustomName(player, displayName, features)
-
-        publish(player, data, displayName)
-    }
-
-    private fun updateTeam(player: Player, data: PrefixesPlayerData, features: FeaturesConfig) {
-        removeTeam(player.uniqueId)
-
-        val team = createTeam(player, data, features) ?: return
-        teams[player.uniqueId] = team
-        broadcast(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true))
-    }
-
-    private fun createTeam(player: Player, data: PrefixesPlayerData, features: FeaturesConfig): PaperPlayerTeam? {
-        return when {
-            features.tablist -> PaperPlayerTeam(player.name, data.priority, data.prefix, data.suffix, data.color, features.displayName)
-            features.displayName -> PaperPlayerTeam(player.name, priority = 0)
-            else -> null
-        }
-    }
-
-    private fun removeTeam(id: UUID) {
-        val team = teams.remove(id) ?: return
-        broadcast(ClientboundSetPlayerTeamPacket.createRemovePacket(team))
-    }
-
-    private fun updateCustomName(player: Player, displayName: Component, features: FeaturesConfig) {
         val name = customNameManager.forEntity(player)
-        when {
-            features.displayName -> {
-                name.setName(displayName)
-                name.setHidden(false)
-            }
+        name.setName { viewer -> (registry.getViewerData(player.uniqueId, viewer) ?: data).displayName }
+        name.setHidden(!features.displayName)
 
-            else -> name.setHidden(true)
-        }
+        publish(player)
     }
 
-    fun syncPlayers(player: Player) {
-        val connection = (player as CraftPlayer).handle.connection
-
-        teams.values.forEach { team ->
-            connection.send(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true))
-        }
-    }
-
-    fun sync(force: Boolean = false) {
+    fun addViewer(viewer: Player) {
         Bukkit.getOnlinePlayers().forEach { player ->
-            val data = cache[player.uniqueId] ?: return@forEach
-            val features = prefixes.config.get().features
-            val displayName = PlayerDisplayFormatter.formatDisplayName(
-                data,
-                player.name,
-                features.displayName
-            )
-            publish(player, data, displayName, force)
+            val data = registry.getData(player.uniqueId) ?: return@forEach
+            renderFor(player, viewer, createTeam(player, data))
         }
     }
 
-    private fun publish(player: Player, data: PrefixesPlayerData, displayName: Component, force: Boolean = false) {
-        publish(player, PlayerDisplayFormatter.formatTablistName(data, displayName), data.priority, force)
+    fun publishAll(force: Boolean = false) {
+        Bukkit.getOnlinePlayers()
+            .filter { player -> registry.isLoaded(player.uniqueId) }
+            .forEach { player -> publish(player, force) }
     }
 
-    private fun publish(player: Player, displayName: Component, priority: Int, force: Boolean = false) {
-        val config = prefixes.config.get()
-        if (!config.features.tablist || !config.sync.enabled || !config.sync.channels.tablist) return
+    private fun renderFor(player: Player, viewer: Player, team: PaperPlayerTeam?) {
+        val viewerData = registry.getViewerData(player.uniqueId, viewer.uniqueId)
+        if (viewerData == null) {
+            updateTeam(player, viewer, team)
+            return
+        }
+
+        updateTeam(player, viewer, createTeam(player, viewerData))
+        if (prefixes.config.get().features.tablist) {
+            send(viewer, createListNamePacket(player, formatTablistName(player, viewerData)))
+        }
+    }
+
+    private fun publish(player: Player, force: Boolean = false) {
+        if (!prefixes.config.get().isTablistSynced()) return
         val publisher = prefixes.sync?.publisher ?: return
-        val profileProperties = player.playerProfile.properties.map { property ->
-            ProfileProperty(property.name, property.value, property.signature)
-        }
 
+        val data = registry.getData(player.uniqueId)
         val entry = TablistEntry(
             uniqueId = player.uniqueId,
             name = player.name,
-            displayName = displayName,
-            priority = priority,
-            profileProperties = profileProperties,
+            displayName = if (data == null) Component.text(player.name) else formatTablistName(player, data),
+            priority = data?.priority ?: 0,
+            profileProperties = player.playerProfile.properties.map { property -> ProfileProperty(property.name, property.value, property.signature) },
             latency = player.ping,
             gameMode = TablistGameMode.valueOf(player.gameMode.name),
             showHat = player.getClientOption(ClientOption.SKIN_PARTS).hasHatsEnabled(),
             listOrder = player.playerListOrder
         )
+
         val previous = entries.put(player.uniqueId, entry)
-        if (!force && previous == entry) return
-
-        publisher.publishTablistEntry(entry)
-    }
-
-    private fun broadcast(packet: ClientboundSetPlayerTeamPacket) {
-        Bukkit.getOnlinePlayers().forEach { player ->
-            (player as CraftPlayer).handle.connection.send(packet)
+        if (force || previous != entry) {
+            publisher.publishTablistEntry(entry)
         }
     }
 
+    private fun createTeam(player: Player, data: PrefixesPlayerData): PaperPlayerTeam? {
+        val features = prefixes.config.get().features
+        return when {
+            features.tablist -> PaperPlayerTeam(player.name, data.priority, data.prefix, data.suffix, data.color, features.displayName)
+            features.displayName -> PaperPlayerTeam(player.name, priority = 0, hideNameTag = true)
+            else -> null
+        }
+    }
+
+    private fun updateTeam(player: Player, viewer: Player, team: PaperPlayerTeam?) {
+        val key = ViewerKey(player.uniqueId, viewer.uniqueId)
+        removeTeam(key)
+        if (team == null) return
+
+        teams[key] = team
+        send(viewer, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true))
+    }
+
+    private fun removeTeam(key: ViewerKey) {
+        val team = teams.remove(key) ?: return
+        val viewer = Bukkit.getPlayer(key.viewer) ?: return
+        send(viewer, ClientboundSetPlayerTeamPacket.createRemovePacket(team))
+    }
+
+    private fun formatTablistName(player: Player, data: PrefixesPlayerData): Component =
+        PlayerDisplayFormatter.formatTablistName(data, player.name, prefixes.config.get().features.displayName)
+
+    private fun createListNamePacket(player: Player, name: Component): ClientboundPlayerInfoUpdatePacket {
+        val handle = (player as CraftPlayer).handle
+        val entry = ClientboundPlayerInfoUpdatePacket.Entry(
+            player.uniqueId,
+            handle.gameProfile,
+            true,
+            player.ping,
+            handle.gameMode.gameModeForPlayer,
+            PaperAdventure.asVanilla(name),
+            true,
+            player.playerListOrder,
+            null
+        )
+        return ClientboundPlayerInfoUpdatePacket(EnumSet.of(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME), listOf(entry))
+    }
+
+    private fun send(viewer: Player, packet: Packet<*>) {
+        (viewer as CraftPlayer).handle.connection.send(packet)
+    }
 }

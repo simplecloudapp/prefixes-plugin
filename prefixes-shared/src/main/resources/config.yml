@@ -59,13 +59,20 @@ sync:
 # Groups
 # Only used when general.source is config.
 #
-# Supported placeholders:
+# Placeholders in display-name:
+#   <color>        Group color
+#   <playername>   Normal Minecraft player name
+#
+# Placeholders in chat-format:
 #   <prefix>       Group prefix
 #   <suffix>       Group suffix
 #   <color>        Group color
-#   <playername>   Normal Minecraft player name
+#   <playername>   Normal Minecraft player name (alias: <name>)
 #   <displayname>  Formatted display name
 #   <message>      Chat message
+#
+# Colors can be a hex code ('#DC2626' or '<#DC2626>') or a color name ('red').
+# If display-name or chat-format is empty, the default format is used.
 # ─────────────────────────────────────────────────────────────────────────────
 groups:
 - name: owner

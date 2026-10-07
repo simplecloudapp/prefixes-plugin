@@ -16,7 +16,6 @@ data class MessageConfig(
 @ConfigSerializable
 data class CommandMessages(
     val help: CommandHelpMessages = CommandHelpMessages(),
-    val usage: CommandUsageMessages = CommandUsageMessages(),
     val permission: CommandPermissionMessages = CommandPermissionMessages(),
     val reload: CommandReloadMessages = CommandReloadMessages()
 )
@@ -25,11 +24,6 @@ data class CommandMessages(
 data class CommandHelpMessages(
     val title: String = "<prefix> <#0EA5E9>SimpleCloud Prefixes commands",
     val entry: String = "<#E2E8F0><command>"
-)
-
-@ConfigSerializable
-data class CommandUsageMessages(
-    val invalid: String = "<prefix> <#DC2626>Use <#F8FAFC><command> <#DC2626>instead."
 )
 
 @ConfigSerializable

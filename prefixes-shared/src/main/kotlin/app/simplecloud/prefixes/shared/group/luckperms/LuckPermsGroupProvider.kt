@@ -3,9 +3,10 @@ package app.simplecloud.prefixes.shared.group.luckperms
 import app.simplecloud.plugin.api.shared.extension.miniMessage
 import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.api.group.PrefixesGroup
-import app.simplecloud.prefixes.shared.platform.PrefixesLogger
 import app.simplecloud.prefixes.shared.utilities.ColorParser
-import net.kyori.adventure.text.Component
+import app.simplecloud.prefixes.shared.PrefixesConstants
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.future.future
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.model.group.Group
 import net.luckperms.api.model.user.User
@@ -17,9 +18,10 @@ import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 class LuckPermsGroupProvider(
-    private val logger: PrefixesLogger,
     private val luckPerms: LuckPerms
 ) : GroupProvider {
+
+    private val logger = PrefixesConstants.LOGGER
 
     override fun getName(): String = "luckperms"
 
@@ -37,24 +39,27 @@ class LuckPermsGroupProvider(
             return CompletableFuture.completedFuture(resolveGroup(user))
         }
 
-        return luckPerms.userManager.loadUser(id)
-            .thenApply(::resolveGroup)
-            .exceptionally { throwable ->
-                logger.error("Failed to load LuckPerms user $id", throwable)
-                null
-            }
+        return PrefixesConstants.SCOPE.future { loadGroup(id) }
     }
 
     override fun addGroup(group: PrefixesGroup): CompletableFuture<Boolean> {
-        return luckPerms.groupManager.loadGroup(group.name).thenCompose { existing ->
-            if (existing.isPresent) {
-                return@thenCompose CompletableFuture.completedFuture(false)
-            }
+        return PrefixesConstants.SCOPE.future {
+            val existing = luckPerms.groupManager.loadGroup(group.name).await()
+            if (existing.isPresent) return@future false
 
-            luckPerms.groupManager.createAndLoadGroup(group.name).thenCompose { created ->
-                applyPrefixes(created, group)
-                luckPerms.groupManager.saveGroup(created).thenApply { true }
-            }
+            val created = luckPerms.groupManager.createAndLoadGroup(group.name).await()
+            applyPrefixes(created, group)
+            luckPerms.groupManager.saveGroup(created).await()
+            true
+        }
+    }
+
+    private suspend fun loadGroup(id: UUID): PrefixesGroup? {
+        return try {
+            resolveGroup(luckPerms.userManager.loadUser(id).await())
+        } catch (exception: Exception) {
+            logger.error("Failed to load LuckPerms user $id", exception)
+            null
         }
     }
 
@@ -62,20 +67,17 @@ class LuckPermsGroupProvider(
         val data = target.data()
         data.add(WeightNode.builder(source.priority).build())
 
-        val prefix = miniMessage.serialize(source.prefix ?: Component.empty())
+        val prefix = miniMessage.serialize(source.prefix)
         if (prefix.isNotEmpty()) {
             data.add(PrefixNode.builder(prefix, source.priority).build())
         }
 
-        val suffix = miniMessage.serialize(source.suffix ?: Component.empty())
+        val suffix = miniMessage.serialize(source.suffix)
         if (suffix.isNotEmpty()) {
             data.add(SuffixNode.builder(suffix, source.priority).build())
         }
 
-        val color = ColorParser.serialize(source.color)
-        if (color.isNotEmpty()) {
-            data.add(MetaNode.builder("color", color).build())
-        }
+        data.add(MetaNode.builder("color", ColorParser.serialize(source.color)).build())
 
         data.add(MetaNode.builder("display-name", source.displayName).build())
         data.add(MetaNode.builder("chat-format", source.chatFormat).build())

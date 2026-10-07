@@ -66,22 +66,22 @@ subprojects {
     }
 
     publishing {
-            publications {
-                create<MavenPublication>("maven") {
-                    from(components["java"])
-                }
+        publications {
+            create<MavenPublication>("maven") {
+                from(components["java"])
             }
+        }
 
-            repositories {
-                maven {
-                    name = "simplecloud"
-                    url = uri("https://repo.simplecloud.app/snapshots")
-                    credentials {
-                        username = System.getenv("SIMPLECLOUD_USERNAME")
-                        password = System.getenv("SIMPLECLOUD_PASSWORD")
-                    }
+        repositories {
+            maven {
+                name = "simplecloud"
+                url = uri("https://repo.simplecloud.app/snapshots")
+                credentials {
+                    username = System.getenv("SIMPLECLOUD_USERNAME")
+                    password = System.getenv("SIMPLECLOUD_PASSWORD")
                 }
             }
         }
+    }
 
 }

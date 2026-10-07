@@ -1,7 +1,6 @@
 package app.simplecloud.prefixes.paper.platform
 
 import app.simplecloud.plugin.api.shared.permission.PermissionChecker
-import app.simplecloud.prefixes.shared.platform.PrefixesLogger
 import app.simplecloud.prefixes.shared.platform.PrefixesPlatform
 import net.luckperms.api.LuckPerms
 import org.bukkit.Bukkit
@@ -10,10 +9,6 @@ import java.io.File
 import java.util.UUID
 
 class PaperPlatformImpl(private val plugin: Plugin) : PrefixesPlatform {
-
-    override fun getLogger(): PrefixesLogger {
-        return PaperPrefixesLogger(plugin)
-    }
 
     override fun getDataDirectory(): File {
         return plugin.dataFolder
@@ -33,4 +28,6 @@ class PaperPlatformImpl(private val plugin: Plugin) : PrefixesPlatform {
     override fun getPlayerName(id: UUID): String {
         return Bukkit.getOfflinePlayer(id).name ?: id.toString()
     }
+
+    override fun isOnline(id: UUID): Boolean = Bukkit.getPlayer(id) != null
 }

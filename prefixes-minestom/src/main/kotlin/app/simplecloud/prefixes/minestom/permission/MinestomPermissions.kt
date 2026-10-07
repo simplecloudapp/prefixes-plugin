@@ -8,23 +8,27 @@ import net.minestom.server.entity.Player
 import java.util.UUID
 import java.util.function.BiPredicate
 
-class MinestomPermissions(private val handler: BiPredicate<CommandSender, String>?) {
+class MinestomPermissions(
+    private val groupPermission: BiPredicate<Player, String>?,
+    private val commandPermission: BiPredicate<Player, String>?
+) {
 
-    val hasHandler: Boolean = handler != null
+    val hasGroupPermission: Boolean = groupPermission != null
 
     fun hasPermission(sender: CommandSender, permission: String): Boolean {
         if (permission.isEmpty()) return true
         if (sender is ConsoleSender) return true
-        if (sender is Player && sender.permissionLevel >= 4) return true
+        if (sender !is Player) return false
 
-        return handler?.test(sender, permission) ?: false
+        if (commandPermission != null) return commandPermission.test(sender, permission)
+        return sender.permissionLevel >= 4
     }
 
     fun getChecker(): PermissionChecker<UUID> = PermissionChecker { id, permission ->
-        val handler = handler ?: return@PermissionChecker false
+        if (groupPermission == null) return@PermissionChecker false
         val player = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(id) ?: return@PermissionChecker false
 
-        handler.test(player, permission)
+        groupPermission.test(player, permission)
     }
 
 }

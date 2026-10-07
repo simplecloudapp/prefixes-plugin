@@ -5,9 +5,11 @@ import app.simplecloud.prefixes.paper.display.PaperTablist
 import app.simplecloud.prefixes.shared.Prefixes
 import app.simplecloud.prefixes.shared.platform.PrefixesListener
 import org.bukkit.Bukkit
+import org.bukkit.plugin.Plugin
 import java.util.UUID
 
 class PaperPrefixesListener(
+    private val plugin: Plugin,
     private val prefixes: Prefixes,
     private val manager: PaperDisplayManager,
     private val tablist: PaperTablist
@@ -16,8 +18,7 @@ class PaperPrefixesListener(
     override fun onReload() {
         onAllPlayersUpdate()
 
-        val config = prefixes.config.get()
-        if (!config.features.tablist || !config.sync.enabled || !config.sync.channels.tablist) {
+        if (!prefixes.config.get().isTablistSynced()) {
             tablist.clear()
             return
         }
@@ -25,9 +26,21 @@ class PaperPrefixesListener(
         prefixes.sync?.publisher?.publishTablistRequest()
     }
 
+    override fun onShutdown() {
+        manager.clear()
+        tablist.clear()
+    }
+
     override fun onPlayerUpdate(id: UUID) {
         val player = Bukkit.getPlayer(id) ?: return
         manager.updatePlayer(player)
+    }
+
+    override fun onPlayerDataChange(id: UUID) {
+        Bukkit.getScheduler().runTask(plugin, Runnable {
+            val player = Bukkit.getPlayer(id) ?: return@Runnable
+            manager.render(player)
+        })
     }
 
     override fun onAllPlayersUpdate() {

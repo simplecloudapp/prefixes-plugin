@@ -3,16 +3,15 @@ package app.simplecloud.prefixes.shared.group
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
-import app.simplecloud.prefixes.shared.platform.PrefixesPlatform
+import app.simplecloud.prefixes.shared.PrefixesConstants
 import java.util.concurrent.ConcurrentHashMap
 
 class GroupProviderRegistry(
     private val config: ConfigurationFactory<PrefixesConfig>,
-    private val provider: GroupProvider,
-    private val platform: PrefixesPlatform
+    private val provider: GroupProvider
 ) {
 
-    private val logger = platform.getLogger()
+    private val logger = PrefixesConstants.LOGGER
     private val providers = ConcurrentHashMap<String, GroupProvider>()
 
     init {
@@ -30,14 +29,17 @@ class GroupProviderRegistry(
 
     fun getAllGroupProviders(): Collection<GroupProvider> = providers.values.toList()
 
-    fun getCurrentGroupProvider(): GroupProvider {
-        val source = config.get().general.source.trim().lowercase()
-        val provider = providers[source] ?: return warnMissingProvider(source)
-        return provider
+    fun getCurrentGroupProvider(): GroupProvider = providers[getSource()] ?: provider
+
+    fun validateSource() {
+        val source = getSource()
+        if (providers.containsKey(source)) {
+            logger.info("Using the group source '$source'")
+            return
+        }
+
+        logger.warn("No group provider named '$source' is registered yet, using '${provider.getName()}' until it is registered")
     }
 
-    private fun warnMissingProvider(source: String): GroupProvider {
-        logger.warn("No group provider named '$source' is registered, using '${provider.getName()}' instead")
-        return provider
-    }
+    private fun getSource(): String = config.get().general.source.trim().lowercase()
 }

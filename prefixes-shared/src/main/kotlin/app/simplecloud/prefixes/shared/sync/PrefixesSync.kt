@@ -3,22 +3,23 @@ package app.simplecloud.prefixes.shared.sync
 import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
-import app.simplecloud.prefixes.shared.platform.PrefixesLogger
+import app.simplecloud.prefixes.shared.PrefixesConstants
 import io.nats.client.Connection
 import io.nats.client.Nats
 import io.nats.client.Options
+import org.slf4j.LoggerFactory
 
 class PrefixesSync(
-    config: ConfigurationFactory<PrefixesConfig>,
-    private val logger: PrefixesLogger
+    config: ConfigurationFactory<PrefixesConfig>
 ) {
 
-    private val api = CloudApi.create()
+    private val logger = LoggerFactory.getLogger(PrefixesConstants.LOGGER_NAME)
     private val connection = createNatsConnection()
+    private val api = CloudApi.create()
     private val subjects = PrefixesSubjects(api.networkId)
 
-    val publisher = SyncPublisher(connection, subjects, config, logger)
-    val subscriber = SyncSubscriber(connection, subjects, config, logger)
+    val publisher = SyncPublisher(connection, subjects, config)
+    val subscriber = SyncSubscriber(connection, subjects, config)
 
     fun shutdown() {
         runCatching {

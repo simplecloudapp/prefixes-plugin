@@ -5,6 +5,7 @@ import app.simplecloud.prefixes.minestom.display.MinestomTablist
 import app.simplecloud.prefixes.shared.Prefixes
 import app.simplecloud.prefixes.shared.utilities.PlayerDisplayFormatter
 import net.kyori.adventure.text.Component
+import net.minestom.server.MinecraftServer
 import net.minestom.server.event.Event
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.player.PlayerChatEvent
@@ -24,17 +25,16 @@ class PlayerListener(
     }
 
     private fun onSpawn(event: PlayerSpawnEvent) {
-        // custom-names drops the name tag when the player leaves an instance.
         if (!event.isFirstSpawn) {
             manager.refreshNameTag(event.player)
             return
         }
 
         tablist.remove(event.player.uuid)
-        manager.addPlayer(event.player)
+        manager.updatePlayer(event.player)
+        manager.addViewer(event.player)
 
-        val config = prefixes.config.get()
-        if (config.features.tablist && config.sync.enabled && config.sync.channels.tablist) {
+        if (prefixes.config.get().isTablistSynced()) {
             tablist.sync(event.player)
         }
     }
@@ -48,12 +48,23 @@ class PlayerListener(
         if (!features.chat) return
 
         val player = event.player
-        val data = manager.getPlayer(player.uuid) ?: return
-        val displayName = PlayerDisplayFormatter.formatDisplayName(data, player.username, features.displayName)
-        val message = PlayerDisplayFormatter.formatChatMessage(data, player.username, Component.text(event.rawMessage), displayName)
+        val data = prefixes.dataRegistry.getData(player.uuid) ?: return
+        val rawMessage = Component.text(event.rawMessage)
+        val message = PlayerDisplayFormatter.formatChatMessage(data, player.username, rawMessage, features.displayName)
 
+        val viewerMessages = event.recipients.mapNotNull { viewer ->
+            val viewerData = prefixes.dataRegistry.getViewerData(player.uuid, viewer.uuid) ?: return@mapNotNull null
+            viewer to PlayerDisplayFormatter.formatChatMessage(viewerData, player.username, rawMessage, features.displayName)
+        }
+
+        event.recipients.removeAll(viewerMessages.map { (viewer, _) -> viewer }.toSet())
         event.formattedMessage = message
-        prefixes.sync?.publisher?.publishChatMessage(message)
-    }
 
+        MinecraftServer.getSchedulerManager().scheduleNextTick {
+            if (event.isCancelled) return@scheduleNextTick
+
+            viewerMessages.forEach { (viewer, viewerMessage) -> viewer.sendMessage(viewerMessage) }
+            prefixes.sync?.publisher?.publishChatMessage(message)
+        }
+    }
 }

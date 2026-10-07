@@ -1,7 +1,7 @@
 package app.simplecloud.prefixes.shared.sync
 
 import app.simplecloud.api.runtime.SimpleCloudRuntime
-import app.simplecloud.prefixes.shared.utilities.Constants
+import app.simplecloud.prefixes.shared.PrefixesConstants
 
 class PrefixesSubjects(
     networkId: String,
@@ -26,12 +26,12 @@ class PrefixesSubjects(
             .distinct()
             .toList()
 
-        if (Constants.ALL_SYNC_SOURCE in resolvedSources) {
+        if (PrefixesConstants.ALL_SYNC_SOURCE in resolvedSources) {
             return listOf("$root.*.*.$subject")
         }
 
         return resolvedSources
-            .map { source -> if (source == Constants.CURRENT_SYNC_SOURCE) origin else source }
+            .map { source -> if (source == PrefixesConstants.CURRENT_SYNC_SOURCE) origin else source }
             .distinct()
             .map { source -> "$root.$source.*.$subject" }
     }

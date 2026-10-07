@@ -7,17 +7,18 @@ import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.api.group.PrefixesGroup
 import app.simplecloud.prefixes.shared.config.ConfigGroup
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
-import app.simplecloud.prefixes.shared.platform.PrefixesLogger
 import app.simplecloud.prefixes.shared.utilities.ColorParser
-import net.kyori.adventure.text.Component
+import app.simplecloud.prefixes.shared.PrefixesConstants
+import kotlinx.coroutines.future.future
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 class ConfigGroupProvider(
-    private val logger: PrefixesLogger,
     private val configFactory: ConfigurationFactory<PrefixesConfig>,
     private val permissionChecker: PermissionChecker<UUID>
 ) : GroupProvider {
+
+    private val logger = PrefixesConstants.LOGGER
 
     override fun getName(): String = "config"
 
@@ -26,23 +27,21 @@ class ConfigGroupProvider(
     }
 
     override fun getGroup(id: UUID): CompletableFuture<PrefixesGroup?> {
-        return CompletableFuture.supplyAsync {
+        return PrefixesConstants.SCOPE.future {
             val groups = loadGroups()
             val config = configFactory.get()
 
-            // Check if player has permission for any group, highest priority first.
             val group = groups.firstOrNull {
-                it.name != config.general.defaultGroup && it.hasPermission(id)
+                !it.name.equals(config.general.defaultGroup, ignoreCase = true) && it.hasPermission(id)
             }
 
-            // Fallback to the default group if no group matched.
-            group ?: groups.firstOrNull { it.name == config.general.defaultGroup }
+            group ?: groups.firstOrNull { it.name.equals(config.general.defaultGroup, ignoreCase = true) }
         }
     }
 
     override fun addGroup(group: PrefixesGroup): CompletableFuture<Boolean> {
-        return CompletableFuture.supplyAsync {
-            synchronized(this) {
+        return PrefixesConstants.SCOPE.future {
+            synchronized(this@ConfigGroupProvider) {
                 val config = configFactory.get()
                 if (config.groups.any { it.name.equals(group.name, ignoreCase = true) }) {
                     return@synchronized false
@@ -69,8 +68,8 @@ class ConfigGroupProvider(
         name = group.name,
         priority = group.priority,
         permission = group.permission,
-        prefix = miniMessage.serialize(group.prefix ?: Component.empty()),
-        suffix = miniMessage.serialize(group.suffix ?: Component.empty()),
+        prefix = miniMessage.serialize(group.prefix),
+        suffix = miniMessage.serialize(group.suffix),
         color = ColorParser.serialize(group.color),
         displayName = group.displayName,
         chatFormat = group.chatFormat

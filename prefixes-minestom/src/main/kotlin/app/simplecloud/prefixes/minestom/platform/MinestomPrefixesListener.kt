@@ -16,8 +16,7 @@ class MinestomPrefixesListener(
     override fun onReload() {
         onAllPlayersUpdate()
 
-        val config = prefixes.config.get()
-        if (!config.features.tablist || !config.sync.enabled || !config.sync.channels.tablist) {
+        if (!prefixes.config.get().isTablistSynced()) {
             tablist.clear()
             return
         }
@@ -25,9 +24,21 @@ class MinestomPrefixesListener(
         prefixes.sync?.publisher?.publishTablistRequest()
     }
 
+    override fun onShutdown() {
+        manager.clear()
+        tablist.clear()
+    }
+
     override fun onPlayerUpdate(id: UUID) {
         val player = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(id) ?: return
         manager.updatePlayer(player)
+    }
+
+    override fun onPlayerDataChange(id: UUID) {
+        MinecraftServer.getSchedulerManager().scheduleNextTick {
+            val player = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(id) ?: return@scheduleNextTick
+            manager.render(player)
+        }
     }
 
     override fun onAllPlayersUpdate() {

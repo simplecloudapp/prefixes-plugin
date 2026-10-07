@@ -11,7 +11,6 @@ import app.simplecloud.prefixes.paper.platform.PaperPrefixesListener
 import app.simplecloud.prefixes.shared.Prefixes
 import app.simplecloud.prefixes.shared.command.PrefixesCommand
 import app.simplecloud.prefixes.shared.platform.PrefixesPlatform
-import app.simplecloud.prefixes.shared.utilities.Constants
 import org.bukkit.Bukkit
 import org.bukkit.plugin.ServicePriority
 import org.bukkit.plugin.java.JavaPlugin
@@ -33,7 +32,6 @@ class PrefixesPaper : JavaPlugin() {
 
         prefixes.startup()
 
-        // Register Prefixes API as a Bukkit Service.
         Bukkit.getServicesManager().register(PrefixesApi::class.java, prefixes.api, this, ServicePriority.Normal)
 
         val manager = PaperDisplayManager(this, prefixes, customNameManager)
@@ -41,55 +39,30 @@ class PrefixesPaper : JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(PlayerListener(prefixes, manager, tablist), this)
 
         registerSync(prefixes, manager, tablist)
-        registerLuckPermsListener(prefixes, platform, manager)
+        registerLuckPermsListener(platform, manager)
 
-        // Refresh players on reload and on updates requested from the api.
-        prefixes.addListener(PaperPrefixesListener(prefixes, manager, tablist))
+        prefixes.addListener(PaperPrefixesListener(this, prefixes, manager, tablist))
 
         registerCommands(prefixes)
+        prefixes.api.refreshAll()
     }
 
     override fun onDisable() {
         prefixes?.shutdown()
     }
 
-    // Apply chat and tablist updates from the configured sync sources.
     private fun registerSync(prefixes: Prefixes, manager: PaperDisplayManager, tablist: PaperTablist) {
         val sync = prefixes.sync ?: return
-        val config = prefixes.config.get()
 
-        if (config.features.chat && config.sync.channels.chat) {
-            sync.subscriber.subscribeChatMessage { message -> Bukkit.getServer().sendMessage(message) }
-        }
-
-        if (!config.features.tablist || !config.sync.channels.tablist) return
-
-        sync.subscriber.subscribeTablist(
-            onUpdate = tablist::update,
-            onRemove = tablist::remove,
-            onRequest = { manager.sync(force = true) }
-        )
+        sync.subscriber.subscribeChatMessage { message -> Bukkit.getServer().sendMessage(message) }
+        sync.subscriber.subscribeTablist(tablist::update, tablist::remove) { Bukkit.getScheduler().runTask(this, Runnable { manager.publishAll(true) }) }
         sync.publisher.publishTablistRequest()
 
-        Bukkit.getScheduler().runTaskTimer(
-            this,
-            Runnable { manager.sync() },
-            600L,
-            600L
-        )
+        Bukkit.getScheduler().runTaskTimer(this, Runnable { manager.publishAll() }, 600L, 600L)
     }
 
-    private fun registerLuckPermsListener(prefixes: Prefixes, platform: PrefixesPlatform, manager: PaperDisplayManager) {
-        val source = prefixes.config.get().general.source
-        platform.getLogger().info("Using Source Type: $source")
-        if (!source.equals(Constants.LUCKPERMS_SOURCE, ignoreCase = true)) return
-
-        val luckPerms = platform.getLuckPerms()
-        if (luckPerms == null) {
-            platform.getLogger().warn("Source Type is set to ${Constants.LUCKPERMS_SOURCE}, but LuckPerms was not found on the server!")
-            return
-        }
-
+    private fun registerLuckPermsListener(platform: PrefixesPlatform, manager: PaperDisplayManager) {
+        val luckPerms = platform.getLuckPerms() ?: return
         LuckPermsListener(this, luckPerms, manager).register()
     }
 

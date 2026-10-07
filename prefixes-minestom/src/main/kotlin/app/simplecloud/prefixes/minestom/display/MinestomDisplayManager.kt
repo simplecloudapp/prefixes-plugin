@@ -2,16 +2,20 @@ package app.simplecloud.prefixes.minestom.display
 
 import app.simplecloud.prefixes.api.group.PrefixesPlayerData
 import app.simplecloud.prefixes.shared.Prefixes
-import app.simplecloud.prefixes.shared.config.FeaturesConfig
+import app.simplecloud.prefixes.shared.data.ViewerKey
 import app.simplecloud.prefixes.shared.sync.tablist.ProfileProperty
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
 import app.simplecloud.prefixes.shared.sync.tablist.TablistGameMode
+import app.simplecloud.prefixes.shared.PrefixesConstants
 import app.simplecloud.prefixes.shared.utilities.PlayerDisplayFormatter
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player
-import net.minestom.server.scoreboard.Team
+import net.minestom.server.network.packet.server.play.PlayerInfoUpdatePacket
+import net.minestom.server.network.packet.server.play.TeamsPacket
 import space.chunks.customname.api.CustomNameManager
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -21,133 +25,154 @@ class MinestomDisplayManager(
     private val customNameManager: CustomNameManager<Entity>
 ) {
 
-    private val logger = prefixes.getPlatform().getLogger()
-    private val cache = ConcurrentHashMap<UUID, PrefixesPlayerData>()
-    private val teams = ConcurrentHashMap<UUID, Team>()
+    private val registry = prefixes.dataRegistry
+
+    private val teams = ConcurrentHashMap<ViewerKey, TeamsPacket>()
     private val entries = ConcurrentHashMap<UUID, TablistEntry>()
 
-    fun getPlayer(id: UUID): PrefixesPlayerData? {
-        return cache[id]
-    }
-
-    fun addPlayer(player: Player) {
-        updatePlayer(player)
-    }
-
     fun updatePlayer(player: Player) {
-        prefixes.api.getPrefixData(player.uuid).thenAccept { data ->
+        PrefixesConstants.SCOPE.launch {
+            val group = prefixes.api.getPrimaryGroup(player.uuid).await()
             MinecraftServer.getSchedulerManager().scheduleNextTick {
-                applyPrefixData(player, data)
+                if (!player.isOnline) return@scheduleNextTick
+                registry.loadGroup(player.uuid, group)
+                render(player)
             }
-        }.exceptionally { throwable ->
-            logger.error("Failed to update prefix data of ${player.username}", throwable)
-            null
         }
     }
 
     fun removePlayer(player: Player) {
-        cache.remove(player.uuid)
-        removeTeam(player.uuid)
+        val id = player.uuid
+        registry.remove(id)
+        teams.keys.filter { key -> key.target == id || key.viewer == id }.forEach { key ->
+            if (key.viewer == id) teams.remove(key) else removeTeam(key)
+        }
         customNameManager.unregister(player)
 
-        entries.remove(player.uuid)
-        prefixes.sync?.publisher?.publishTablistRemove(player.uuid)
-    }
-
-    fun refreshNameTag(player: Player) {
-        val data = cache[player.uuid] ?: return
-        val features = prefixes.config.get().features
-        updateNameTag(player, displayName(data, player, features), features)
+        entries.remove(id)
+        prefixes.sync?.publisher?.publishTablistRemove(id)
     }
 
     fun clear() {
-        cache.clear()
         entries.clear()
         teams.keys.toList().forEach(::removeTeam)
+        onlinePlayers().forEach { player -> player.displayName = null }
     }
 
-    fun sync(force: Boolean = false) {
-        MinecraftServer.getConnectionManager().onlinePlayers.forEach { player ->
-            val data = cache[player.uuid] ?: return@forEach
-            val features = prefixes.config.get().features
-
-            publish(player, data, displayName(data, player, features), force)
-        }
-    }
-
-    private fun applyPrefixData(player: Player, data: PrefixesPlayerData) {
+    fun render(player: Player) {
         if (!player.isOnline) return
-        cache[player.uuid] = data
+        val data = registry.getData(player.uuid) ?: return
 
-        val features = prefixes.config.get().features
-        val displayName = displayName(data, player, features)
-        player.displayName = if (features.tablist) PlayerDisplayFormatter.formatTablistName(data, displayName) else null
+        player.displayName = if (prefixes.config.get().features.tablist) formatTablistName(player, data) else null
 
-        updateTeam(player, data, features)
-        updateNameTag(player, displayName, features)
+        val team = createTeam(player, data)
+        onlinePlayers().forEach { viewer -> renderFor(player, viewer, team) }
 
-        publish(player, data, displayName)
+        updateNameTag(player, data)
+        publish(player)
     }
 
-    private fun updateTeam(player: Player, data: PrefixesPlayerData, features: FeaturesConfig) {
-        removeTeam(player.uuid)
-
-        val team = createTeam(player, data, features) ?: return
-        teams[player.uuid] = team
+    fun refreshNameTag(player: Player) {
+        val data = registry.getData(player.uuid) ?: return
+        updateNameTag(player, data)
     }
 
-    private fun createTeam(player: Player, data: PrefixesPlayerData, features: FeaturesConfig): Team? {
-        return when {
-            features.tablist -> MinestomPlayerTeam.create(player.username, data.priority, data.prefix, data.suffix, data.color, features.displayName)
-            // Only there to hide the vanilla name tag, which the name tag entity replaces.
-            features.displayName -> MinestomPlayerTeam.create(player.username, priority = 0, hideNameTag = true)
-            else -> null
+    fun addViewer(viewer: Player) {
+        onlinePlayers().forEach { player ->
+            val data = registry.getData(player.uuid) ?: return@forEach
+            renderFor(player, viewer, createTeam(player, data))
         }
     }
 
-    private fun removeTeam(id: UUID) {
-        val team = teams.remove(id) ?: return
-        MinestomPlayerTeam.delete(team)
+    fun publishAll(force: Boolean = false) {
+        onlinePlayers().forEach { player -> publish(player, force) }
     }
 
-    private fun updateNameTag(player: Player, displayName: Component, features: FeaturesConfig) {
-        if (!features.displayName) {
-            customNameManager.unregister(player)
+    private fun renderFor(player: Player, viewer: Player, team: TeamsPacket?) {
+        val viewerData = registry.getViewerData(player.uuid, viewer.uuid)
+        if (viewerData == null) {
+            updateTeam(player, viewer, team)
             return
         }
 
-        customNameManager.forEntity(player).setName(displayName)
+        updateTeam(player, viewer, createTeam(player, viewerData))
+        if (prefixes.config.get().features.tablist) {
+            viewer.sendPacket(createListNamePacket(player, formatTablistName(player, viewerData)))
+        }
     }
 
-    private fun publish(player: Player, data: PrefixesPlayerData, displayName: Component, force: Boolean = false) {
-        val config = prefixes.config.get()
-        if (!config.features.tablist || !config.sync.enabled || !config.sync.channels.tablist) return
-        val publisher = prefixes.sync?.publisher ?: return
+    private fun updateNameTag(player: Player, data: PrefixesPlayerData) {
+        val name = customNameManager.forEntity(player)
+        name.setName { viewer -> (registry.getViewerData(player.uuid, viewer) ?: data).displayName }
+        name.setHidden(!prefixes.config.get().features.displayName)
+    }
 
+    private fun publish(player: Player, force: Boolean = false) {
+        if (!prefixes.config.get().isTablistSynced()) return
+        val publisher = prefixes.sync?.publisher ?: return
+        val data = registry.getData(player.uuid) ?: return
+
+        val skin = player.skin
         val entry = TablistEntry(
             uniqueId = player.uuid,
             name = player.username,
-            displayName = PlayerDisplayFormatter.formatTablistName(data, displayName),
+            displayName = formatTablistName(player, data),
             priority = data.priority,
-            profileProperties = getProfileProperties(player),
+            profileProperties = if (skin == null) emptyList() else listOf(ProfileProperty("textures", skin.textures(), skin.signature())),
             latency = player.latency,
             gameMode = TablistGameMode.valueOf(player.gameMode.name),
             showHat = (player.settings.displayedSkinParts.toInt() and 0x40) != 0,
             listOrder = player.listOrder
         )
+
         val previous = entries.put(player.uuid, entry)
-        if (!force && previous == entry) return
-
-        publisher.publishTablistEntry(entry)
+        if (force || previous != entry) {
+            publisher.publishTablistEntry(entry)
+        }
     }
 
-    private fun getProfileProperties(player: Player): List<ProfileProperty> {
-        val skin = player.skin ?: return emptyList()
-        return listOf(ProfileProperty("textures", skin.textures(), skin.signature()))
+    private fun createTeam(player: Player, data: PrefixesPlayerData): TeamsPacket? {
+        val features = prefixes.config.get().features
+        return when {
+            features.tablist -> MinestomPlayerTeam.createPacket(player.username, data.priority, data.prefix, data.suffix, data.color, features.displayName)
+            features.displayName -> MinestomPlayerTeam.createPacket(player.username, priority = 0, hideNameTag = true)
+            else -> null
+        }
     }
 
-    private fun displayName(data: PrefixesPlayerData, player: Player, features: FeaturesConfig): Component {
-        return PlayerDisplayFormatter.formatDisplayName(data, player.username, features.displayName)
+    private fun updateTeam(player: Player, viewer: Player, team: TeamsPacket?) {
+        val key = ViewerKey(player.uuid, viewer.uuid)
+        removeTeam(key)
+        if (team == null) return
+
+        teams[key] = team
+        viewer.sendPacket(team)
     }
 
+    private fun removeTeam(key: ViewerKey) {
+        val team = teams.remove(key) ?: return
+        val viewer = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(key.viewer) ?: return
+        viewer.sendPacket(MinestomPlayerTeam.removePacket(team))
+    }
+
+    private fun formatTablistName(player: Player, data: PrefixesPlayerData): Component =
+        PlayerDisplayFormatter.formatTablistName(data, player.username, prefixes.config.get().features.displayName)
+
+    private fun createListNamePacket(player: Player, name: Component): PlayerInfoUpdatePacket {
+        val entry = PlayerInfoUpdatePacket.Entry(
+            player.uuid,
+            player.username,
+            emptyList(),
+            true,
+            player.latency,
+            player.gameMode,
+            name,
+            null,
+            player.listOrder,
+            true
+        )
+        return PlayerInfoUpdatePacket(PlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, entry)
+    }
+
+    private fun onlinePlayers(): Collection<Player> = MinecraftServer.getConnectionManager().onlinePlayers
 }

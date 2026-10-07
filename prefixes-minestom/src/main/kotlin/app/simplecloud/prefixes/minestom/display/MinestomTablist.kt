@@ -1,6 +1,5 @@
 package app.simplecloud.prefixes.minestom.display
 
-import app.simplecloud.prefixes.shared.sync.tablist.ProfileProperty
 import app.simplecloud.prefixes.shared.sync.tablist.SourcedTablistEntry
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
 import net.minestom.server.MinecraftServer
@@ -8,7 +7,7 @@ import net.minestom.server.entity.GameMode
 import net.minestom.server.entity.Player
 import net.minestom.server.network.packet.server.play.PlayerInfoRemovePacket
 import net.minestom.server.network.packet.server.play.PlayerInfoUpdatePacket
-import net.minestom.server.scoreboard.Team
+import net.minestom.server.network.packet.server.play.PlayerInfoUpdatePacket.Action
 import net.minestom.server.utils.PacketSendingUtils
 import java.util.EnumSet
 import java.util.UUID
@@ -17,28 +16,29 @@ import java.util.concurrent.ConcurrentHashMap
 class MinestomTablist {
 
     private val entries = ConcurrentHashMap<UUID, SourcedTablistEntry>()
-    private val teams = ConcurrentHashMap<UUID, Team>()
 
     fun update(publisherId: String, entry: TablistEntry) {
         if (isOnline(entry.uniqueId)) return
 
         val previous = entries.put(entry.uniqueId, SourcedTablistEntry(publisherId, entry))?.entry
-        val actions = getActions(entry, previous)
-
-        if (actions.isNotEmpty()) {
-            PacketSendingUtils.broadcastPlayPacket(createInfoPacket(listOf(entry), actions))
+        if (previous != entry) {
+            PacketSendingUtils.broadcastPlayPacket(createInfoPacket(listOf(entry)))
         }
         if (previous == null || previous.name != entry.name || previous.priority != entry.priority) {
-            updateTeam(entry)
+            if (previous != null) MinestomPlayerTeam.unregister(previous.name, previous.priority)
+            MinestomPlayerTeam.register(entry.name, entry.priority)
         }
     }
 
     fun remove(id: UUID) {
-        removeEntry(null, id)
+        val sourced = entries.remove(id) ?: return
+        hide(sourced.entry)
     }
 
     fun remove(publisherId: String, id: UUID) {
-        removeEntry(publisherId, id)
+        val sourced = entries[id] ?: return
+        if (sourced.publisherId != publisherId) return
+        if (entries.remove(id, sourced)) hide(sourced.entry)
     }
 
     fun clear() {
@@ -46,45 +46,33 @@ class MinestomTablist {
     }
 
     fun sync(player: Player) {
-        val visibleEntries = entries.values
-            .map(SourcedTablistEntry::entry)
-            .filter { !isOnline(it.uniqueId) }
+        val visible = entries.values.map(SourcedTablistEntry::entry).filter { entry -> !isOnline(entry.uniqueId) }
+        visible.chunked(PlayerInfoUpdatePacket.MAX_ENTRIES).forEach { batch -> player.sendPacket(createInfoPacket(batch)) }
+    }
 
-        visibleEntries.chunked(PlayerInfoUpdatePacket.MAX_ENTRIES).forEach { batch ->
-            player.sendPacket(createInfoPacket(batch, getFullUpdateActions()))
+    private fun hide(entry: TablistEntry) {
+        MinestomPlayerTeam.unregister(entry.name, entry.priority)
+        if (!isOnline(entry.uniqueId)) {
+            PacketSendingUtils.broadcastPlayPacket(PlayerInfoRemovePacket(entry.uniqueId))
         }
     }
 
-    private fun removeEntry(publisherId: String?, id: UUID) {
-        val sourcedEntry = entries[id] ?: return
-        if (publisherId != null && sourcedEntry.publisherId != publisherId) return
-        if (!entries.remove(id, sourcedEntry)) return
+    private fun getUpdateActions(): EnumSet<Action> = EnumSet.of(
+        Action.ADD_PLAYER,
+        Action.UPDATE_LISTED,
+        Action.UPDATE_GAME_MODE,
+        Action.UPDATE_LATENCY,
+        Action.UPDATE_DISPLAY_NAME,
+        Action.UPDATE_LIST_ORDER,
+        Action.UPDATE_HAT
+    )
 
-        removeTeam(id)
-        if (isOnline(id)) return
-
-        PacketSendingUtils.broadcastPlayPacket(PlayerInfoRemovePacket(id))
-    }
-
-    private fun updateTeam(entry: TablistEntry) {
-        removeTeam(entry.uniqueId)
-        teams[entry.uniqueId] = MinestomPlayerTeam.create(entry.name, entry.priority)
-    }
-
-    private fun removeTeam(id: UUID) {
-        val team = teams.remove(id) ?: return
-        MinestomPlayerTeam.delete(team)
-    }
-
-    private fun createInfoPacket(
-        tablistEntries: Collection<TablistEntry>,
-        actions: EnumSet<PlayerInfoUpdatePacket.Action>
-    ): PlayerInfoUpdatePacket {
+    private fun createInfoPacket(tablistEntries: Collection<TablistEntry>): PlayerInfoUpdatePacket {
         val packetEntries = tablistEntries.map { entry ->
             PlayerInfoUpdatePacket.Entry(
                 entry.uniqueId,
                 entry.name,
-                entry.profileProperties.map(::createProperty),
+                entry.profileProperties.map { property -> PlayerInfoUpdatePacket.Property(property.name, property.value, property.signature) },
                 true,
                 entry.latency,
                 GameMode.valueOf(entry.gameMode.name),
@@ -95,56 +83,8 @@ class MinestomTablist {
             )
         }
 
-        return PlayerInfoUpdatePacket(actions, packetEntries)
+        return PlayerInfoUpdatePacket(getUpdateActions(), packetEntries)
     }
 
-    private fun getActions(
-        entry: TablistEntry,
-        previous: TablistEntry?
-    ): EnumSet<PlayerInfoUpdatePacket.Action> {
-        if (previous == null ||
-            previous.name != entry.name ||
-            previous.profileProperties != entry.profileProperties
-        ) {
-            return getFullUpdateActions()
-        }
-
-        val actions = EnumSet.noneOf(PlayerInfoUpdatePacket.Action::class.java)
-        if (previous.gameMode != entry.gameMode) {
-            actions.add(PlayerInfoUpdatePacket.Action.UPDATE_GAME_MODE)
-        }
-        if (previous.latency != entry.latency) {
-            actions.add(PlayerInfoUpdatePacket.Action.UPDATE_LATENCY)
-        }
-        if (previous.displayName != entry.displayName) {
-            actions.add(PlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME)
-        }
-        if (previous.listOrder != entry.listOrder) {
-            actions.add(PlayerInfoUpdatePacket.Action.UPDATE_LIST_ORDER)
-        }
-        if (previous.showHat != entry.showHat) {
-            actions.add(PlayerInfoUpdatePacket.Action.UPDATE_HAT)
-        }
-        return actions
-    }
-
-    private fun getFullUpdateActions(): EnumSet<PlayerInfoUpdatePacket.Action> =
-        EnumSet.of(
-            PlayerInfoUpdatePacket.Action.ADD_PLAYER,
-            PlayerInfoUpdatePacket.Action.UPDATE_LISTED,
-            PlayerInfoUpdatePacket.Action.UPDATE_GAME_MODE,
-            PlayerInfoUpdatePacket.Action.UPDATE_LATENCY,
-            PlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME,
-            PlayerInfoUpdatePacket.Action.UPDATE_LIST_ORDER,
-            PlayerInfoUpdatePacket.Action.UPDATE_HAT
-        )
-
-    private fun createProperty(property: ProfileProperty): PlayerInfoUpdatePacket.Property {
-        val signature = property.signature ?: return PlayerInfoUpdatePacket.Property(property.name, property.value)
-        return PlayerInfoUpdatePacket.Property(property.name, property.value, signature)
-    }
-
-    private fun isOnline(id: UUID): Boolean {
-        return MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(id) != null
-    }
+    private fun isOnline(id: UUID): Boolean = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(id) != null
 }

@@ -3,6 +3,9 @@ package app.simplecloud.prefixes.api
 import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.api.group.PrefixesGroup
 import app.simplecloud.prefixes.api.group.PrefixesPlayerData
+import net.kyori.adventure.audience.Audience
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.TextColor
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
@@ -11,64 +14,93 @@ import java.util.concurrent.CompletableFuture
  */
 interface PrefixesApi {
 
-    /**
-     * Returns all registered [PrefixesGroup] ordered by priority.
-     */
+    /** Returns all registered groups ordered by priority. */
     fun getGroups(): CompletableFuture<Collection<PrefixesGroup>>
 
-    /**
-     * Returns the highest-priority applicable [PrefixesGroup] of a player.
-     * @param id Target player UUID
-     */
+    /** Returns the highest-priority group of the player [id], or null if none matches. */
     fun getPrimaryGroup(id: UUID): CompletableFuture<PrefixesGroup?>
 
-    /**
-     * Returns the prefix data for a player.
-     * @param id Target player UUID
-     */
+    /** Returns the prefix data everyone sees for the player [id]. */
     fun getPrefixData(id: UUID): CompletableFuture<PrefixesPlayerData>
 
-    /**
-     * Adds a new group to the group provider.
-     *
-     * @param group The group to add
-     * @return A future completing with `true` if the group was created, or `false` if a group with that name already exists.
-     */
+    /** Returns the prefix data [viewer] sees for the player [id]. */
+    fun getPrefixData(id: UUID, viewer: Audience): CompletableFuture<PrefixesPlayerData>
+
+    /** Sets the [prefix] of the player [id] for everyone. */
+    fun setPrefix(id: UUID, prefix: Component)
+
+    /** Sets the [prefix] of the player [id], visible only to [viewers]. */
+    fun setPrefix(id: UUID, prefix: Component, viewers: Audience)
+
+    /** Sets the [suffix] of the player [id] for everyone. */
+    fun setSuffix(id: UUID, suffix: Component)
+
+    /** Sets the [suffix] of the player [id], visible only to [viewers]. */
+    fun setSuffix(id: UUID, suffix: Component, viewers: Audience)
+
+    /** Sets the name [color] of the player [id] for everyone. */
+    fun setColor(id: UUID, color: TextColor)
+
+    /** Sets the name [color] of the player [id], visible only to [viewers]. */
+    fun setColor(id: UUID, color: TextColor, viewers: Audience)
+
+    /** Sets the tablist [priority] of the player [id] for everyone, higher is listed further up. */
+    fun setPriority(id: UUID, priority: Int)
+
+    /** Sets the tablist [priority] of the player [id], visible only to [viewers]. */
+    fun setPriority(id: UUID, priority: Int, viewers: Audience)
+
+    /** Shows the player [id] with the group named [group] for everyone, completes with `false` if it does not exist. */
+    fun setGroup(id: UUID, group: String): CompletableFuture<Boolean>
+
+    /** Shows the player [id] with the group named [group] to [viewers], completes with `false` if it does not exist. */
+    fun setGroup(id: UUID, group: String, viewers: Audience): CompletableFuture<Boolean>
+
+    /** Shows all players in [targets] with the group named [group] for everyone, completes with `false` if it does not exist. */
+    fun setGroup(targets: Audience, group: String): CompletableFuture<Boolean>
+
+    /** Shows all players in [targets] with the group named [group] to [viewers], completes with `false` if it does not exist. */
+    fun setGroup(targets: Audience, group: String, viewers: Audience): CompletableFuture<Boolean>
+
+    /** Shows the player [id] with [group] for everyone. */
+    fun setGroup(id: UUID, group: PrefixesGroup)
+
+    /** Shows the player [id] with [group] to [viewers]. */
+    fun setGroup(id: UUID, group: PrefixesGroup, viewers: Audience)
+
+    /** Shows all players in [targets] with [group] for everyone. */
+    fun setGroup(targets: Audience, group: PrefixesGroup)
+
+    /** Shows all players in [targets] with [group] to [viewers]. */
+    fun setGroup(targets: Audience, group: PrefixesGroup, viewers: Audience)
+
+    /** Removes all manually set values of the player [id]. */
+    fun reset(id: UUID)
+
+    /** Removes all manually set values of the players in [targets]. */
+    fun reset(targets: Audience)
+
+    /** Removes the values set for [viewers] from the players in [targets]. */
+    fun reset(targets: Audience, viewers: Audience)
+
+    /** Adds [group] to the current group provider, completes with `false` if it already exists. */
     fun addGroup(group: PrefixesGroup): CompletableFuture<Boolean>
 
-    /**
-     * Registers a group provider under its [GroupProvider.name].
-     *
-     * @param provider The provider to register
-     */
+    /** Registers [provider] under its name. */
     fun registerGroupProvider(provider: GroupProvider)
 
-    /**
-     * Removes a registered group provider.
-     *
-     * @param name Name of the provider to remove
-     */
+    /** Removes the group provider named [name]. */
     fun unregisterGroupProvider(name: String)
 
-    /**
-     * Returns the provider currently used.
-     */
+    /** Returns the group provider currently used. */
     fun getGroupProvider(): GroupProvider
 
-    /**
-     * Returns all registered group providers.
-     */
+    /** Returns all registered group providers. */
     fun getGroupProviders(): Collection<GroupProvider>
 
-    /**
-     * Reapplies the prefix data of a player on this server.
-     *
-     * @param id Target player UUID
-     */
+    /** Reloads the group of the player [id], manually set values stay. */
     fun refreshPlayer(id: UUID)
 
-    /**
-     * Reapplies the prefix data of all players on this server.
-     */
+    /** Reloads the groups of all players on this server, manually set values stay. */
     fun refreshAll()
 }

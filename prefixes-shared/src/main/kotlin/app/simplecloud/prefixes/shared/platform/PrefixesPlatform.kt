@@ -11,11 +11,6 @@ import java.util.UUID
 interface PrefixesPlatform {
 
     /**
-     * Returns this platform's logger.
-     */
-    fun getLogger(): PrefixesLogger
-
-    /**
      * Returns this platform's data directory.
      */
     fun getDataDirectory(): File
@@ -34,4 +29,9 @@ interface PrefixesPlatform {
      * Returns the name of a player.
      */
     fun getPlayerName(id: UUID): String
+
+    /**
+     * Returns whether a player is online on this server.
+     */
+    fun isOnline(id: UUID): Boolean
 }

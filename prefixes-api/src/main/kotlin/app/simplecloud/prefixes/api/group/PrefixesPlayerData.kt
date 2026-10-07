@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 
 /**
- * Represents the prefixes data of a player.
+ * The prefixes data from a player.
  */
 data class PrefixesPlayerData(
     val prefix: Component,

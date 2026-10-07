@@ -6,34 +6,43 @@ import app.simplecloud.prefixes.shared.api.PrefixesApiImpl
 import app.simplecloud.prefixes.shared.config.DefaultConfigInstaller
 import app.simplecloud.prefixes.shared.config.MessageConfig
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
+import app.simplecloud.prefixes.shared.config.SyncConfig
+import app.simplecloud.prefixes.shared.data.PrefixesDataRegistry
 import app.simplecloud.prefixes.shared.group.GroupProviderRegistry
 import app.simplecloud.prefixes.shared.group.config.ConfigGroupProvider
 import app.simplecloud.prefixes.shared.group.luckperms.LuckPermsGroupProvider
 import app.simplecloud.prefixes.shared.platform.PrefixesListener
 import app.simplecloud.prefixes.shared.platform.PrefixesPlatform
 import app.simplecloud.prefixes.shared.sync.PrefixesSync
+import app.simplecloud.prefixes.shared.utilities.ColorParser
+import kotlinx.coroutines.cancelChildren
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 
 class Prefixes(private val platform: PrefixesPlatform) {
 
-    private val logger = platform.getLogger()
+    private val logger = LoggerFactory.getLogger(PrefixesConstants.LOGGER_NAME)
     private val listeners = CopyOnWriteArrayList<PrefixesListener>()
 
     val config = createConfig()
     val messages = createMessages()
 
     val registry = createGroupRegistry()
-    val api = PrefixesApiImpl(registry, listeners, platform)
+    val dataRegistry = PrefixesDataRegistry(platform)
+    val api = PrefixesApiImpl(registry, dataRegistry, listeners, platform)
     val sync = createSync()
 
     fun startup() {
         PrefixesApiProvider.register(api)
+        validateConfig()
     }
 
     fun shutdown() {
+        listeners.forEach(PrefixesListener::onShutdown)
         PrefixesApiProvider.unregister()
         sync?.shutdown()
+        PrefixesConstants.SCOPE.coroutineContext.cancelChildren()
     }
 
     fun addListener(listener: PrefixesListener) {
@@ -43,8 +52,11 @@ class Prefixes(private val platform: PrefixesPlatform) {
     fun reload(): Boolean {
         return runCatching {
             logger.info("Reloading simplecloud prefixes...")
+            val previousSync = config.get().sync
             config.reload()
             messages.reload()
+            validateConfig()
+            warnIfRestartRequired(previousSync)
             listeners.forEach(PrefixesListener::onReload)
         }.onSuccess {
             logger.info("Succesfully reloaded simplecloud prefixes")
@@ -55,6 +67,20 @@ class Prefixes(private val platform: PrefixesPlatform) {
 
     fun getPlatform(): PrefixesPlatform {
         return platform
+    }
+
+    private fun validateConfig() {
+        registry.validateSource()
+        config.get().groups
+            .filter { group -> group.color.isNotBlank() && ColorParser.parse(group.color) == null }
+            .forEach { group -> logger.warn("The color '${group.color}' of the group '${group.name}' is invalid, using white instead") }
+    }
+
+    private fun warnIfRestartRequired(previous: SyncConfig) {
+        val current = config.get().sync
+        if ((sync == null && current.enabled) || previous.sources != current.sources) {
+            logger.warn("Enabling sync or changing sync.sources only takes effect after a restart")
+        }
     }
 
     private fun createConfig(): ConfigurationFactory<PrefixesConfig> {
@@ -73,18 +99,18 @@ class Prefixes(private val platform: PrefixesPlatform) {
     }
 
     private fun createGroupRegistry(): GroupProviderRegistry {
-        val registry = GroupProviderRegistry(config, ConfigGroupProvider(logger, config, platform.getPermissionChecker()), platform)
+        val registry = GroupProviderRegistry(config, ConfigGroupProvider(config, platform.getPermissionChecker()))
 
         val luckPerms = platform.getLuckPerms()
         if (luckPerms != null) {
-            registry.register(LuckPermsGroupProvider(logger, luckPerms))
+            registry.register(LuckPermsGroupProvider(luckPerms))
         }
 
         return registry
     }
 
     private fun createSync(): PrefixesSync? {
-        if (!isSyncEnabled()) return null
+        if (!config.get().sync.enabled) return null
 
         if (!isSimpleCloudAvailable()) {
             logger.warn("Sync is enabled in the config, but SimpleCloud was not found on this server.")
@@ -92,7 +118,7 @@ class Prefixes(private val platform: PrefixesPlatform) {
         }
 
         return runCatching {
-            PrefixesSync(config, logger)
+            PrefixesSync(config)
         }.onFailure { throwable ->
             logger.error("Failed to initialize sync", throwable)
         }.getOrNull()
@@ -105,12 +131,5 @@ class Prefixes(private val platform: PrefixesPlatform) {
         } catch (_: ClassNotFoundException) {
             false
         }
-    }
-
-    private fun isSyncEnabled(): Boolean {
-        val current = config.get()
-        if (!current.sync.enabled) return false
-
-        return current.features.chat && current.sync.channels.chat || current.features.tablist && current.sync.channels.tablist
     }
 }

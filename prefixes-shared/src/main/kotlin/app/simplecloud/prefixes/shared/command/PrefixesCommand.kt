@@ -45,11 +45,6 @@ class PrefixesCommand<C : PrefixesSender>(
                 .permission(PrefixesPermissions.RELOAD)
                 .suspendingHandler {
                     val sender = it.sender()
-                    if (!sender.hasPermission(PrefixesPermissions.RELOAD)) {
-                        sender.sendMessage(messages.msg(messages.command.permission.denied))
-                        return@suspendingHandler
-                    }
-
                     val reloaded = prefixes.reload()
                     if (reloaded) {
                         sender.sendMessage(messages.msg(messages.command.reload.success))
