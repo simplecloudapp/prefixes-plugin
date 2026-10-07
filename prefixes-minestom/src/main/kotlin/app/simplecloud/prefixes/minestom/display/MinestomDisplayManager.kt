@@ -63,7 +63,7 @@ class MinestomDisplayManager(
         if (!player.isOnline) return
         val data = registry.getData(player.uuid) ?: return
 
-        player.displayName = if (prefixes.config.get().features.tablist) formatTablistName(player, data) else null
+        player.displayName = if (prefixes.config.get().features.tablist) PlayerDisplayFormatter.formatTablistName(data, player.username) else null
 
         val team = createTeam(player, data)
         onlinePlayers().forEach { viewer -> renderFor(player, viewer, team) }
@@ -97,7 +97,7 @@ class MinestomDisplayManager(
 
         updateTeam(player, viewer, createTeam(player, viewerData))
         if (prefixes.config.get().features.tablist) {
-            viewer.sendPacket(createListNamePacket(player, formatTablistName(player, viewerData)))
+            viewer.sendPacket(createListNamePacket(player, PlayerDisplayFormatter.formatTablistName(viewerData, player.username)))
         }
     }
 
@@ -116,7 +116,7 @@ class MinestomDisplayManager(
         val entry = TablistEntry(
             uniqueId = player.uuid,
             name = player.username,
-            displayName = formatTablistName(player, data),
+            displayName = PlayerDisplayFormatter.formatTablistName(data, player.username),
             priority = data.priority,
             profileProperties = if (skin == null) emptyList() else listOf(ProfileProperty("textures", skin.textures(), skin.signature())),
             latency = player.latency,
@@ -154,9 +154,6 @@ class MinestomDisplayManager(
         val viewer = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(key.viewer) ?: return
         viewer.sendPacket(MinestomPlayerTeam.removePacket(team))
     }
-
-    private fun formatTablistName(player: Player, data: PrefixesPlayerData): Component =
-        PlayerDisplayFormatter.formatTablistName(data, player.username, prefixes.config.get().features.displayName)
 
     private fun createListNamePacket(player: Player, name: Component): PlayerInfoUpdatePacket {
         val entry = PlayerInfoUpdatePacket.Entry(

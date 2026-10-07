@@ -77,7 +77,7 @@ class PaperDisplayManager(
         val data = registry.getData(player.uniqueId) ?: return
         val features = prefixes.config.get().features
 
-        player.playerListName(if (features.tablist) formatTablistName(player, data) else null)
+        player.playerListName(if (features.tablist) PlayerDisplayFormatter.formatTablistName(data, player.name) else null)
         val team = createTeam(player, data)
         Bukkit.getOnlinePlayers().forEach { viewer -> renderFor(player, viewer, team) }
 
@@ -110,7 +110,7 @@ class PaperDisplayManager(
 
         updateTeam(player, viewer, createTeam(player, viewerData))
         if (prefixes.config.get().features.tablist) {
-            send(viewer, createListNamePacket(player, formatTablistName(player, viewerData)))
+            send(viewer, createListNamePacket(player, PlayerDisplayFormatter.formatTablistName(viewerData, player.name)))
         }
     }
 
@@ -122,7 +122,7 @@ class PaperDisplayManager(
         val entry = TablistEntry(
             uniqueId = player.uniqueId,
             name = player.name,
-            displayName = if (data == null) Component.text(player.name) else formatTablistName(player, data),
+            displayName = if (data == null) Component.text(player.name) else PlayerDisplayFormatter.formatTablistName(data, player.name),
             priority = data?.priority ?: 0,
             profileProperties = player.playerProfile.properties.map { property -> ProfileProperty(property.name, property.value, property.signature) },
             latency = player.ping,
@@ -160,9 +160,6 @@ class PaperDisplayManager(
         val viewer = Bukkit.getPlayer(key.viewer) ?: return
         send(viewer, ClientboundSetPlayerTeamPacket.createRemovePacket(team))
     }
-
-    private fun formatTablistName(player: Player, data: PrefixesPlayerData): Component =
-        PlayerDisplayFormatter.formatTablistName(data, player.name, prefixes.config.get().features.displayName)
 
     private fun createListNamePacket(player: Player, name: Component): ClientboundPlayerInfoUpdatePacket {
         val handle = (player as CraftPlayer).handle

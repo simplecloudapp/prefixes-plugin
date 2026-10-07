@@ -6,7 +6,7 @@ plugins {
 val customNamesRoot = rootProject.layout.projectDirectory.dir("custom-names")
 require(
     customNamesRoot.dir("custom-names-api/src/main/kotlin").asFile.isDirectory &&
-        customNamesRoot.dir("custom-names-paper/src/main/kotlin").asFile.isDirectory
+            customNamesRoot.dir("custom-names-paper/src/main/kotlin").asFile.isDirectory
 ) {
     "The custom-names submodule is missing. Run `git submodule update --init --recursive`."
 }
@@ -43,17 +43,10 @@ modrinth {
     versionType.set("release")
     uploadFile.set(tasks.shadowJar)
     gameVersions.addAll(
-        "26.3"
+        "26.2",
+        "26.3",
     )
     loaders.addAll("paper", "purpur")
     changelog.set("https://docs.simplecloud.app/changelog")
     syncBodyFrom.set(rootProject.file("README.md").readText())
-}
-
-// Paper bootstrap writes logs; keep regression-test output under build/.
-tasks.test {
-    workingDir = layout.buildDirectory.dir("test-server").get().asFile
-    doFirst {
-        workingDir.mkdirs()
-    }
 }

@@ -22,11 +22,12 @@ features:
   # Format chat messages using the group's chat-format.
   chat: true
 
-  # Apply prefixes, suffixes, colors and sorting to the tab list.
+  # Show the prefix, the colored player name and the suffix in the tab list,
+  # sorted by group priority.
   tablist: true
 
-  # Apply the group's configured display-name.
-  # When disabled, the player's normal Minecraft name is used.
+  # Show the group's display-name above the player's head.
+  # When disabled, the normal Minecraft name tag is shown instead.
   display-name: true
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -60,6 +61,8 @@ sync:
 # Only used when general.source is config.
 #
 # Placeholders in display-name:
+#   <prefix>       Group prefix
+#   <suffix>       Group suffix
 #   <color>        Group color
 #   <playername>   Normal Minecraft player name
 #
@@ -84,7 +87,7 @@ groups:
   suffix: ''
   # Used by the <color> placeholder and player name coloring.
   color: '<#DC2626>'
-  # Formatted player name.
+  # Name shown above the player's head, e.g. '<prefix><color><playername>'.
   display-name: '<color><playername>'
   # Format used when features.chat is enabled.
   chat-format: '<prefix><color><playername><suffix> <#475569>» <#F8FAFC><message>'

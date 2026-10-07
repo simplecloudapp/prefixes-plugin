@@ -11,9 +11,9 @@ object PlayerDisplayFormatter {
         return if (displayNameEnabled) data.displayName else Component.text(playerName)
     }
 
-    fun formatTablistName(data: PrefixesPlayerData, playerName: String, displayNameEnabled: Boolean): Component {
+    fun formatTablistName(data: PrefixesPlayerData, playerName: String): Component {
         return data.prefix
-            .append(formatDisplayName(data, playerName, displayNameEnabled))
+            .append(Component.text(playerName, data.color))
             .append(data.suffix)
     }
 

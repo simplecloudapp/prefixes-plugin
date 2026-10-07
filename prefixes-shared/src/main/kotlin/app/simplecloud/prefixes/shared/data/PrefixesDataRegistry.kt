@@ -73,16 +73,20 @@ class PrefixesDataRegistry(private val platform: PrefixesPlatform) {
     }
 
     private fun createData(id: UUID, override: PrefixesOverride): PrefixesPlayerData {
+        val prefix = override.prefix ?: Component.empty()
+        val suffix = override.suffix ?: Component.empty()
         val color = override.color ?: NamedTextColor.WHITE
         val displayName = miniMessage.deserialize(
             override.displayName ?: PrefixesConstants.DEFAULT_DISPLAY_NAME,
+            Placeholder.component("prefix", prefix),
+            Placeholder.component("suffix", suffix),
             Placeholder.styling("color", color),
             Placeholder.unparsed("playername", platform.getPlayerName(id))
         )
 
         return PrefixesPlayerData(
-            override.prefix ?: Component.empty(),
-            override.suffix ?: Component.empty(),
+            prefix,
+            suffix,
             color,
             displayName,
             override.chatFormat ?: PrefixesConstants.DEFAULT_CHAT_FORMAT,
