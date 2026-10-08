@@ -5,15 +5,11 @@ import app.simplecloud.prefixes.shared.utilities.PrefixesPermissions
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.incendo.cloud.CommandManager
 import org.incendo.cloud.kotlin.coroutines.extension.suspendingHandler
-import java.util.logging.Level
-import java.util.logging.Logger
 
 class PrefixesCommand<C : PrefixesSender>(
     private val manager: CommandManager<C>,
     private val prefixes: Prefixes
 ) {
-
-    private val logger = Logger.getLogger(PrefixesCommand::class.java.name)
 
     private val messages get() = prefixes.messages.get()
 
@@ -49,17 +45,10 @@ class PrefixesCommand<C : PrefixesSender>(
                 .permission(PrefixesPermissions.RELOAD)
                 .suspendingHandler {
                     val sender = it.sender()
-                    if (!sender.hasPermission(PrefixesPermissions.RELOAD)) {
-                        sender.sendMessage(messages.msg(messages.command.permission.denied))
-                        return@suspendingHandler
-                    }
-
-                    runCatching {
-                        prefixes.reload()
-                    }.onSuccess {
+                    val reloaded = prefixes.reload()
+                    if (reloaded) {
                         sender.sendMessage(messages.msg(messages.command.reload.success))
-                    }.onFailure { throwable ->
-                        logger.log(Level.SEVERE, "Failed to reload SimpleCloud Prefixes", throwable)
+                    } else {
                         sender.sendMessage(messages.msg(messages.command.reload.failed))
                     }
                 }

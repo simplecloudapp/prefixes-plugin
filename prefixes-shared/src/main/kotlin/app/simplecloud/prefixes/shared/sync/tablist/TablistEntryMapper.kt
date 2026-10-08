@@ -29,7 +29,7 @@ object TablistEntryMapper {
         profileProperties = definition.profilePropertiesList.map(::fromDefinition),
         latency = definition.latency,
         gameMode = fromDefinition(definition.gameMode),
-        showHat = definition.showHat.takeIf { definition.hasShowHat() } ?: true,
+        showHat = showHat(definition),
         listOrder = definition.listOrder
     )
 
@@ -37,15 +37,30 @@ object TablistEntryMapper {
         val definition = TablistProfileProperty.newBuilder()
             .setName(property.name)
             .setValue(property.value)
-        property.signature?.let(definition::setSignature)
+
+        val signature = property.signature
+        if (signature != null) {
+            definition.setSignature(signature)
+        }
+
         return definition.build()
     }
 
     private fun fromDefinition(property: TablistProfileProperty) = ProfileProperty(
         name = property.name,
         value = property.value,
-        signature = property.signature.takeIf { property.hasSignature() }
+        signature = signature(property)
     )
+
+    private fun showHat(definition: TablistEntryUpdateEvent): Boolean {
+        if (!definition.hasShowHat()) return true
+        return definition.showHat
+    }
+
+    private fun signature(property: TablistProfileProperty): String? {
+        if (!property.hasSignature()) return null
+        return property.signature
+    }
 
     private fun toDefinition(gameMode: TablistGameMode): TablistGameModeDefinition = when (gameMode) {
         TablistGameMode.SURVIVAL -> TablistGameModeDefinition.TABLIST_GAME_MODE_SURVIVAL

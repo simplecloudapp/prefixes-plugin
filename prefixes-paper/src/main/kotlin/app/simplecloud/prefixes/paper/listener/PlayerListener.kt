@@ -3,7 +3,6 @@ package app.simplecloud.prefixes.paper.listener
 import app.simplecloud.prefixes.paper.display.PaperDisplayManager
 import app.simplecloud.prefixes.paper.display.PaperTablist
 import app.simplecloud.prefixes.shared.Prefixes
-import app.simplecloud.prefixes.shared.sync.SyncPublisher
 import app.simplecloud.prefixes.shared.utilities.PlayerDisplayFormatter
 import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.event.EventHandler
@@ -15,19 +14,18 @@ import org.bukkit.event.player.PlayerQuitEvent
 class PlayerListener(
     private val prefixes: Prefixes,
     private val manager: PaperDisplayManager,
-    private val tablist: PaperTablist,
-    private val publisher: SyncPublisher?
+    private val tablist: PaperTablist
 ) : Listener {
 
     @EventHandler
     fun onJoin(event: PlayerJoinEvent) {
-        tablist.remove(event.player.uniqueId)
-        manager.addPlayer(event.player)
-        manager.syncPlayers(event.player)
+        val player = event.player
+        tablist.remove(player.uniqueId)
+        manager.addPlayer(player)
+        manager.addViewer(player)
 
-        val config = prefixes.config.get()
-        if (config.features.tablist && config.sync.enabled && config.sync.channels.tablist) {
-            tablist.sync(event.player)
+        if (prefixes.config.get().isTablistSynced()) {
+            tablist.sync(player)
         }
     }
 
@@ -42,17 +40,13 @@ class PlayerListener(
         if (!features.chat) return
 
         val player = event.player
-        val data = manager.getPlayer(player.uniqueId) ?: return
-        val displayName = PlayerDisplayFormatter.displayName(data, player.name, features.displayName)
+        val data = prefixes.dataRegistry.getData(player.uniqueId) ?: return
+        val message = PlayerDisplayFormatter.formatChatMessage(data, player.name, event.message(), features.displayName)
 
-        val message = PlayerDisplayFormatter.formatChatMessage(
-            data,
-            player.name,
-            event.message(),
-            displayName
-        )
-
-        event.renderer { _, _, _, _ -> message }
-        publisher?.publishChatMessage(message)
+        event.renderer { _, _, _, viewer ->
+            val viewerData = prefixes.dataRegistry.getViewerData(player.uniqueId, viewer)
+            if (viewerData == null) message else PlayerDisplayFormatter.formatChatMessage(viewerData, player.name, event.message(), features.displayName)
+        }
+        prefixes.sync?.publisher?.publishChatMessage(message)
     }
 }

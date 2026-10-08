@@ -7,6 +7,9 @@ import app.simplecloud.prefixes.api.group.GroupProvider
 import app.simplecloud.prefixes.api.group.PrefixesGroup
 import app.simplecloud.prefixes.shared.config.ConfigGroup
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
+import app.simplecloud.prefixes.shared.utilities.ColorParser
+import app.simplecloud.prefixes.shared.PrefixesConstants
+import kotlinx.coroutines.future.future
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
@@ -15,51 +18,59 @@ class ConfigGroupProvider(
     private val permissionChecker: PermissionChecker<UUID>
 ) : GroupProvider {
 
-    override val name: String = "Config"
+    private val logger = PrefixesConstants.LOGGER
 
-    override fun getGroups(): Collection<PrefixesGroup> {
-        val config = configFactory.get()
-        return config.groups
-            .map { ConfigPrefixesGroup(it, permissionChecker) }
-            .sortedByDescending { it.priority }
+    override fun getName(): String = "config"
+
+    override fun getGroups(): CompletableFuture<Collection<PrefixesGroup>> {
+        return CompletableFuture.completedFuture(loadGroups())
     }
 
     override fun getGroup(id: UUID): CompletableFuture<PrefixesGroup?> {
-        return CompletableFuture.supplyAsync {
-            val groups = getGroups()
+        return PrefixesConstants.SCOPE.future {
+            val groups = loadGroups()
             val config = configFactory.get()
 
-            // Check if player has permission for any group, highest priority first.
             val group = groups.firstOrNull {
-                it.name != config.general.defaultGroup && it.containsPlayer(id)
+                !it.name.equals(config.general.defaultGroup, ignoreCase = true) && it.hasPermission(id)
             }
 
-            // Fallback to the default group if no group matched.
-            group ?: groups.firstOrNull { it.name == config.general.defaultGroup }
+            group ?: groups.firstOrNull { it.name.equals(config.general.defaultGroup, ignoreCase = true) }
         }
     }
 
     override fun addGroup(group: PrefixesGroup): CompletableFuture<Boolean> {
-        return CompletableFuture.supplyAsync {
-            synchronized(this) {
+        return PrefixesConstants.SCOPE.future {
+            synchronized(this@ConfigGroupProvider) {
                 val config = configFactory.get()
                 if (config.groups.any { it.name.equals(group.name, ignoreCase = true) }) {
                     return@synchronized false
                 }
 
-                configFactory.save(config.copy(groups = config.groups + createConfigGroup(group)))
-                true
+                try {
+                    configFactory.save(config.copy(groups = config.groups + createConfigGroup(group)))
+                    true
+                } catch (e: Exception) {
+                    logger.error("Failed to save group '${group.name}' to config", e)
+                    false
+                }
             }
         }
+    }
+
+    private fun loadGroups(): List<ConfigPrefixesGroup> {
+        return configFactory.get().groups
+            .map { ConfigPrefixesGroup(it, permissionChecker) }
+            .sortedByDescending { it.priority }
     }
 
     private fun createConfigGroup(group: PrefixesGroup) = ConfigGroup(
         name = group.name,
         priority = group.priority,
         permission = group.permission,
-        prefix = group.prefix?.let { miniMessage.serialize(it) } ?: "",
-        suffix = group.suffix?.let { miniMessage.serialize(it) } ?: "",
-        color = group.color?.let { "<${it.asHexString().uppercase()}>" } ?: "",
+        prefix = miniMessage.serialize(group.prefix),
+        suffix = miniMessage.serialize(group.suffix),
+        color = ColorParser.serialize(group.color),
         displayName = group.displayName,
         chatFormat = group.chatFormat
     )

@@ -25,16 +25,17 @@
 
 > All information about this project can be found in our detailed [documentation][docs-thisproject].
 
-The Prefixes Plugin provides comprehensive rank management for chat, tab list and name tag displays. Groups are either defined in the plugin config or read from LuckPerms, and within a SimpleCloud network chat messages and tab list entries can be synced across servers.
+A Paper plugin and Minestom library for prefixes, suffixes and name colors in chat, the tab list and name tags. Groups come from a simple config or straight from LuckPerms, and on a SimpleCloud network chat and tab list can be shared across servers.
 
 ## Features
 
-- [x] **LuckPerms Integration**: Use the built-in config groups or let the plugin convert your LuckPerms groups into prefix groups.
-- [x] **Chat, Tab List & Name Tags**: Prefixes, suffixes, colors and display names are applied to chat messages, the tab list and player name tags.
-- [x] **Cross-Server Sync**: Share chat messages and tab list entries between all servers, selected server groups or persistent servers of your network.
-- [x] **MiniMessage Formats**: Prefixes, suffixes, display names and chat formats are fully customizable with placeholder support.
-- [x] **Supported Server Software**: Supports Paper and Forks.
-- [x] **Quick Setup**: Easy installation process for all supported software.
+- [x] **Chat, Tab List & Name Tags**: Prefixes, suffixes and colors everywhere.
+- [x] **Config or LuckPerms**: Define groups in the config or use your LuckPerms groups.
+- [x] **Sorted Tab List**: Players are ordered by group priority.
+- [x] **Network Sync**: Share chat and tab list across your SimpleCloud network.
+- [x] **MiniMessage Formats**: Fully customizable with placeholders.
+- [x] **Developer API**: Set prefixes per player or even per viewer, e.g. for teams or friends.
+- [x] **Supported Software**: Paper plugin (and forks) or Minestom library.
 
 ## Dependency
 

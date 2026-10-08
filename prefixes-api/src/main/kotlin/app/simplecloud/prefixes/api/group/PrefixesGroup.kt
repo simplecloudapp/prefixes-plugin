@@ -10,60 +10,30 @@ import java.util.concurrent.CompletableFuture
  */
 interface PrefixesGroup {
 
-    /**
-     * The name of this group.
-     */
+    /** The name of this group. */
     val name: String
 
-    /**
-     * The priority of this group (higher priority values override lower ones).
-     */
+    /** The priority of this group. */
     val priority: Int
 
-    /**
-     * The permission required for this group, or an empty string if none.
-     */
+    /** The permission required for this group, or an empty string if none. */
     val permission: String
 
-    /**
-     * The prefix of this group.
-     */
-    val prefix: Component?
+    /** The prefix of this group. */
+    val prefix: Component
 
-    /**
-     * The suffix of this group.
-     */
-    val suffix: Component?
+    /** The suffix of this group. */
+    val suffix: Component
 
-    /**
-     * The primary color of this group.
-     */
-    val color: TextColor?
+    /** The name color of this group. */
+    val color: TextColor
 
-    /**
-     * The display name format of this group.
-     */
+    /** The display name of this group. */
     val displayName: String
 
-    /**
-     * The chat format of this group.
-     */
+    /** The chat format of this group. */
     val chatFormat: String
 
-    /**
-     * Checks whether the specified player is a member of this group.
-     *
-     * @param id the UUID of the player
-     * @return `true` if the player belongs to this group, otherwise `false`
-     */
-    fun containsPlayer(id: UUID): Boolean
-
-    /**
-     * Checks asynchronously whether the specified player is a member of this group.
-     *
-     * @param id the UUID of the player
-     * @return a future completing with `true` if the player belongs to this group,
-     * otherwise `false`
-     */
-    fun containsPlayerAsync(id: UUID): CompletableFuture<Boolean>
+    /** Returns whether the player [id] is a member of this group. */
+    fun containsPlayer(id: UUID): CompletableFuture<Boolean>
 }

@@ -3,9 +3,6 @@ package app.simplecloud.prefixes.shared.sync.tablist
 import net.kyori.adventure.text.Component
 import java.util.UUID
 
-/**
- * Represents the tablist entry of a player on another server.
- */
 data class TablistEntry(
     val uniqueId: UUID,
     val name: String,
