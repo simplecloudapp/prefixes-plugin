@@ -1,4 +1,4 @@
-name: Create Release with ShadowJars
+name: Release and Publish
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build ShadowJars and Create Release
+    name: Build and Publish
     runs-on: ubuntu-latest
 
     steps:
@@ -18,20 +18,19 @@ jobs:
           ref: main
           submodules: recursive
 
-      - name: Set up JDK 25
+      - name: Set up JDK
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '25'
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-disabled: true
+
       - name: Make gradlew executable
         run: chmod +x ./gradlew
-
-      - name: Print Gradle Wrapper Properties
-        run: cat gradle/wrapper/gradle-wrapper.properties
-
-      - name: Clear Gradle Cache
-        run: rm -rf ~/.gradle/caches && rm -rf ~/.gradle/wrapper
 
       - name: Build ShadowJars
         run: ./gradlew clean build shadowJar
@@ -46,10 +45,6 @@ jobs:
         id: gradle_version
         run: echo "GRADLE_VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')" >> $GITHUB_ENV
 
-      - name: Get Commit Hash
-        id: commit_hash
-        run: echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-
       - name: Publish to Modrinth
         run: ./gradlew modrinth && ./gradlew modrinthSyncBody
         env:
@@ -58,9 +53,7 @@ jobs:
       - name: Create Release
         run: |
           jars=()
-          # Find JAR files in any submodule's build/libs directory
           for jar in $(find . -type f -name "*.jar" -path "*/build/libs/*.jar" -not -path "./build/libs/*"); do
-          # Check if the filename contains a version number (e.g., a dash followed by numbers)
             if [[ $(basename "$jar") =~ -[0-9]+\.[0-9]+ ]]; then
               echo "Skipping $jar due to version number"
             else

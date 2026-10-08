@@ -1,6 +1,5 @@
 package app.simplecloud.prefixes.shared.sync
 
-import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
 import app.simplecloud.prefixes.shared.PrefixesConstants
@@ -14,8 +13,7 @@ class PrefixesSync(
 
     private val logger = PrefixesConstants.LOGGER
     private val connection = createNatsConnection()
-    private val api = CloudApi.create()
-    private val subjects = PrefixesSubjects(api.networkId)
+    private val subjects = PrefixesSubjects()
 
     val publisher = SyncPublisher(connection, subjects, config)
     val subscriber = SyncSubscriber(connection, subjects, config)
@@ -25,7 +23,6 @@ class PrefixesSync(
             logger.info("Shutdown prefixes sync...")
             subscriber.close()
             connection.close()
-            api.close()
         }.onFailure { throwable ->
             logger.error("Failed to shutdown sync", throwable)
         }.onSuccess {

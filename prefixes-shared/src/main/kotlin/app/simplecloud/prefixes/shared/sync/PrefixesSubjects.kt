@@ -1,12 +1,11 @@
 package app.simplecloud.prefixes.shared.sync
 
-import app.simplecloud.api.runtime.SimpleCloudRuntime
 import app.simplecloud.prefixes.shared.PrefixesConstants
 
 class PrefixesSubjects(
-    networkId: String,
-    private val origin: String = SimpleCloudRuntime.groupName().ifBlank { SimpleCloudRuntime.serverId() },
-    serverId: String = SimpleCloudRuntime.serverId()
+    networkId: String = System.getenv().getOrDefault("SIMPLECLOUD_NETWORK_ID", "default"),
+    serverId: String = System.getenv().getOrDefault("SIMPLECLOUD_UNIQUE_ID", ""),
+    private val origin: String = System.getenv().getOrDefault("SIMPLECLOUD_GROUP", "").ifBlank { serverId }
 ) {
 
     private val root = "$networkId.prefixes"

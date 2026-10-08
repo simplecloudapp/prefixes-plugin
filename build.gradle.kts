@@ -34,7 +34,6 @@ subprojects {
         testImplementation(rootProject.libs.kotlin.test)
 
         compileOnly(rootProject.libs.luckperms.api)
-        compileOnly(rootProject.libs.simplecloud.api)
     }
 
     kotlin {

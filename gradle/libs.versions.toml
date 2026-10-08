@@ -7,7 +7,6 @@ minotaur = "2.9.0"
 paperweight = "2.0.0-beta.24"
 protobuf = "0.10.0"
 
-simplecloud-api = "0.1.0-platform.58-dev.5.1-fe01ce5"
 simplecloud-plugin-api = "0.0.1-platform.1778966459069-b1e45e2"
 
 paper = "26.3.build.+"
@@ -33,7 +32,6 @@ slf4j = "2.0.20"
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 
-simplecloud-api = { module = "app.simplecloud.api:api", version.ref = "simplecloud-api" }
 simplecloud-plugin-api = { module = "app.simplecloud.plugin:plugin-shared", version.ref = "simplecloud-plugin-api" }
 
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
