@@ -8,6 +8,7 @@ import net.minestom.server.entity.Player
 import net.minestom.server.network.packet.server.play.PlayerInfoRemovePacket
 import net.minestom.server.network.packet.server.play.PlayerInfoUpdatePacket
 import net.minestom.server.network.packet.server.play.PlayerInfoUpdatePacket.Action
+import net.minestom.server.network.packet.server.play.TeamsPacket
 import net.minestom.server.utils.PacketSendingUtils
 import java.util.EnumSet
 import java.util.UUID
@@ -25,8 +26,8 @@ class MinestomTablist {
             PacketSendingUtils.broadcastPlayPacket(createInfoPacket(listOf(entry)))
         }
         if (previous == null || previous.name != entry.name || previous.priority != entry.priority) {
-            if (previous != null) MinestomPlayerTeam.unregister(previous.name, previous.priority)
-            MinestomPlayerTeam.register(entry.name, entry.priority)
+            if (previous != null) PacketSendingUtils.broadcastPlayPacket(MinestomPlayerTeam.removePacket(createTeam(previous)))
+            PacketSendingUtils.broadcastPlayPacket(createTeam(entry))
         }
     }
 
@@ -48,14 +49,17 @@ class MinestomTablist {
     fun sync(player: Player) {
         val visible = entries.values.map(SourcedTablistEntry::entry).filter { entry -> !isOnline(entry.uniqueId) }
         visible.chunked(PlayerInfoUpdatePacket.MAX_ENTRIES).forEach { batch -> player.sendPacket(createInfoPacket(batch)) }
+        visible.forEach { entry -> player.sendPacket(createTeam(entry)) }
     }
 
     private fun hide(entry: TablistEntry) {
-        MinestomPlayerTeam.unregister(entry.name, entry.priority)
+        PacketSendingUtils.broadcastPlayPacket(MinestomPlayerTeam.removePacket(createTeam(entry)))
         if (!isOnline(entry.uniqueId)) {
             PacketSendingUtils.broadcastPlayPacket(PlayerInfoRemovePacket(entry.uniqueId))
         }
     }
+
+    private fun createTeam(entry: TablistEntry): TeamsPacket = MinestomPlayerTeam.createPacket(entry.name, entry.priority, hideNameTag = false)
 
     private fun getUpdateActions(): EnumSet<Action> = EnumSet.of(
         Action.ADD_PLAYER,
