@@ -1,0 +1,25 @@
+# The messages format version. Do not change this value.
+version: 1
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Variables
+# Reusable variables that can be used throughout the messages.
+# Usage: <variable_name> will be replaced with the defined value.
+# ───────────────────────────────────────────────────────────────────────────────
+variables:
+  prefix: '<color:#38bdf8><bold>⚡</bold></color>'
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Command Messages
+# ───────────────────────────────────────────────────────────────────────────────
+command:
+  help:
+    title: '<prefix> <#0EA5E9>SimpleCloud Prefixes commands'
+    entry: '<#E2E8F0><command>'
+
+  permission:
+    denied: '<prefix> <#DC2626>You do not have permission to use this command.'
+
+  reload:
+    success: '<prefix> <#A3E635>SimpleCloud Prefixes was successfully reloaded.'
+    failed: '<prefix> <#DC2626>SimpleCloud Prefixes could not be reloaded.'

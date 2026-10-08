@@ -6,7 +6,7 @@ version: 1
 # Controls how player groups are resolved.
 # ─────────────────────────────────────────────────────────────────────────────
 general:
-  # Where groups are read from.
+  # Where groups are loaded from.
   # Available: config, luckperms, or the name of a custom provider.
   source: config
 
@@ -33,11 +33,10 @@ features:
 # ─────────────────────────────────────────────────────────────────────────────
 # Sync
 # Shares chat messages and tab list entries across the SimpleCloud network.
-# Disabling sync does not disable local formatting.
 # ─────────────────────────────────────────────────────────────────────────────
 sync:
   # Master switch for all cross-server communication.
-  enabled: true
+  enabled: false
 
   # Select which features are synchronized.
   # The corresponding feature above must also be enabled.
@@ -74,8 +73,6 @@ sync:
 #   <displayname>  Formatted display name
 #   <message>      Chat message
 #
-# Colors can be a hex code ('#DC2626' or '<#DC2626>') or a color name ('red').
-# If display-name or chat-format is empty, the default format is used.
 # ─────────────────────────────────────────────────────────────────────────────
 groups:
 - name: owner

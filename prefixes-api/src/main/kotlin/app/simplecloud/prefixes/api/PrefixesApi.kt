@@ -10,14 +10,14 @@ import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 /**
- * Main entrypoint to interacting with prefixes.
+ * Entrypoint to interacting with prefixes.
  */
 interface PrefixesApi {
 
     /** Returns all registered groups ordered by priority. */
     fun getGroups(): CompletableFuture<Collection<PrefixesGroup>>
 
-    /** Returns the highest-priority group of the player [id], or null if none matches. */
+    /** Returns the primary group of the player [id], or null if none matches. */
     fun getPrimaryGroup(id: UUID): CompletableFuture<PrefixesGroup?>
 
     /** Returns the prefix data everyone sees for the player [id]. */
@@ -29,25 +29,25 @@ interface PrefixesApi {
     /** Sets the [prefix] of the player [id] for everyone. */
     fun setPrefix(id: UUID, prefix: Component)
 
-    /** Sets the [prefix] of the player [id], visible only to [viewers]. */
+    /** Sets the [prefix] of the player [id] for [viewers]. */
     fun setPrefix(id: UUID, prefix: Component, viewers: Audience)
 
     /** Sets the [suffix] of the player [id] for everyone. */
     fun setSuffix(id: UUID, suffix: Component)
 
-    /** Sets the [suffix] of the player [id], visible only to [viewers]. */
+    /** Sets the [suffix] of the player [id] for [viewers]. */
     fun setSuffix(id: UUID, suffix: Component, viewers: Audience)
 
     /** Sets the name [color] of the player [id] for everyone. */
     fun setColor(id: UUID, color: TextColor)
 
-    /** Sets the name [color] of the player [id], visible only to [viewers]. */
+    /** Sets the name [color] of the player [id] for [viewers]. */
     fun setColor(id: UUID, color: TextColor, viewers: Audience)
 
     /** Sets the tablist [priority] of the player [id] for everyone, higher is listed further up. */
     fun setPriority(id: UUID, priority: Int)
 
-    /** Sets the tablist [priority] of the player [id], visible only to [viewers]. */
+    /** Sets the tablist [priority] of the player [id] for [viewers]. */
     fun setPriority(id: UUID, priority: Int, viewers: Audience)
 
     /** Shows the player [id] with the group named [group] for everyone, completes with `false` if it does not exist. */

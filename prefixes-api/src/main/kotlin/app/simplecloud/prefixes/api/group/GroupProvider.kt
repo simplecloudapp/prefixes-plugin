@@ -4,7 +4,7 @@ import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
 /**
- * A source of prefix groups, e.g. the config or LuckPerms.
+ * A source provider of prefix groups, e.g. the config or LuckPerms.
  */
 interface GroupProvider {
 
@@ -14,7 +14,7 @@ interface GroupProvider {
     /** Returns all groups of this provider. */
     fun getGroups(): CompletableFuture<Collection<PrefixesGroup>>
 
-    /** Returns the highest-priority group of the player [id], or null if none matches. */
+    /** Returns the primary group of the player [id], or null if none matches. */
     fun getGroup(id: UUID): CompletableFuture<PrefixesGroup?>
 
     /** Adds [group] to this provider, completes with `false` if it already exists. */

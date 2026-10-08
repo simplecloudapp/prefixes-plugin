@@ -13,9 +13,7 @@ import app.simplecloud.prefixes.shared.Prefixes
 import app.simplecloud.prefixes.shared.command.PrefixesCommand
 import app.simplecloud.prefixes.shared.PrefixesConstants
 import app.simplecloud.prefixes.shared.utilities.PrefixesCoroutineDetails
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import net.luckperms.api.LuckPerms
 import net.minestom.server.MinecraftServer
 import net.minestom.server.adventure.audience.Audiences
@@ -28,16 +26,15 @@ import java.nio.file.Path
 import java.util.function.BiPredicate
 import kotlin.time.Duration.Companion.seconds
 
-class PrefixesMinestom internal constructor(
+class PrefixesMinestom private constructor(
     directory: Path,
-    luckPerms: LuckPerms?,
-    groupPermission: BiPredicate<Player, String>?,
+    permission: BiPredicate<Player, String>?,
     private val registerCommands: Boolean,
-    commandPermission: BiPredicate<Player, String>?
+    luckPerms: LuckPerms?
 ) {
 
     private val node = EventNode.all("simplecloud-prefixes")
-    private val permissions = MinestomPermissions(groupPermission, commandPermission)
+    private val permissions = MinestomPermissions(permission)
     private val platform = MinestomPlatformImpl(directory, permissions.getChecker(), luckPerms)
     private val prefixes = Prefixes(platform)
     private val manager = MinestomDisplayManager(prefixes, CustomNamesMinestom.getManager())
@@ -47,7 +44,13 @@ class PrefixesMinestom internal constructor(
     /** Gets the [PrefixesApi] instance. */
     fun getApi(): PrefixesApi = prefixes.api
 
-    fun init(): PrefixesMinestom {
+    fun shutdown() {
+        MinecraftServer.getGlobalEventHandler().removeChild(node)
+        prefixes.shutdown()
+        CustomNamesMinestom.shutdown()
+    }
+
+    private fun init() {
         CustomNamesMinestom.init()
         prefixes.startup()
         prefixes.addListener(MinestomPrefixesListener(prefixes, manager, tablist))
@@ -55,21 +58,14 @@ class PrefixesMinestom internal constructor(
         PlayerListener(prefixes, manager, tablist).register(node)
         MinecraftServer.getGlobalEventHandler().addChild(node)
 
-        if (prefixes.config.get().general.source.equals(PrefixesConstants.CONFIG_SOURCE, ignoreCase = true) && !permissions.hasGroupPermission) {
-            logger.warn("Source Type is set to '${PrefixesConstants.CONFIG_SOURCE}', but no group permission check was registered!")
+        if (prefixes.config.get().general.source.equals(PrefixesConstants.CONFIG_SOURCE, ignoreCase = true) && !permissions.hasCheck) {
+            logger.warn("Source Type is set to '${PrefixesConstants.CONFIG_SOURCE}', but no permission check was registered!")
         }
 
         registerSync()
         registerLuckPermsListener()
         registerCommands()
         prefixes.api.refreshAll()
-        return this
-    }
-
-    fun shutdown() {
-        MinecraftServer.getGlobalEventHandler().removeChild(node)
-        prefixes.shutdown()
-        CustomNamesMinestom.shutdown()
     }
 
     private fun registerSync() {
@@ -109,12 +105,19 @@ class PrefixesMinestom internal constructor(
     }
 
     companion object {
-        /**
-         * Creates a [PrefixesMinestomBuilder].
-         *
-         * @param directory The directory the config files are created in
-         */
+        /** Creates a [PrefixesMinestomBuilder] config files are created in [directory]. */
         @JvmStatic
         fun builder(directory: Path): PrefixesMinestomBuilder = PrefixesMinestomBuilder(directory)
+
+        internal fun start(
+            directory: Path,
+            permission: BiPredicate<Player, String>?,
+            registerCommands: Boolean,
+            luckPerms: LuckPerms?
+        ): PrefixesMinestom {
+            val instance = PrefixesMinestom(directory, permission, registerCommands, luckPerms)
+            instance.init()
+            return instance
+        }
     }
 }

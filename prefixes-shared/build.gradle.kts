@@ -10,7 +10,6 @@ dependencies {
     implementation(libs.protobuf.kotlin)
     implementation(libs.bundles.configurate)
     implementation(libs.bundles.cloud.command)
-    testImplementation(libs.luckperms.api)
 }
 
 sourceSets {

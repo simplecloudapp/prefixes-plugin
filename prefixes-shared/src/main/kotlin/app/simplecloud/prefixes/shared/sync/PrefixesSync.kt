@@ -7,7 +7,6 @@ import app.simplecloud.prefixes.shared.PrefixesConstants
 import io.nats.client.Connection
 import io.nats.client.Nats
 import io.nats.client.Options
-import org.slf4j.LoggerFactory
 
 class PrefixesSync(
     config: ConfigurationFactory<PrefixesConfig>

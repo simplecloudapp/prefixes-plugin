@@ -88,7 +88,10 @@ class Prefixes(private val platform: PrefixesPlatform) {
     }
 
     private fun createMessages(): ConfigurationFactory<MessageConfig> {
-        val factory = ConfigurationFactory(File(platform.getDataDirectory(), "messages.yml"), MessageConfig::class.java)
+        val file = File(platform.getDataDirectory(), "messages.yml")
+        DefaultConfigInstaller.install(file.toPath(), javaClass.classLoader)
+
+        val factory = ConfigurationFactory(file, MessageConfig::class.java)
         factory.loadOrCreate(MessageConfig())
         return factory
     }

@@ -8,50 +8,25 @@ import java.util.function.BiPredicate
 /**
  * Builds a [PrefixesMinestom] instance.
  */
-class PrefixesMinestomBuilder internal constructor(private val directory: Path) {
-
-    private var luckPerms: LuckPerms? = null
-    private var groupPermission: BiPredicate<Player, String>? = null
-    private var registerCommands = true
-    private var commandPermission: BiPredicate<Player, String>? = null
-
-    /**
-     * Sets the LuckPerms instance used when the group source is `luckperms`.
-     */
-    fun luckPerms(luckPerms: LuckPerms): PrefixesMinestomBuilder {
-        this.luckPerms = luckPerms
-        return this
-    }
+@ConsistentCopyVisibility
+data class PrefixesMinestomBuilder internal constructor(
+    private val directory: Path,
+    private val permission: BiPredicate<Player, String>? = null,
+    private val registerCommands: Boolean = true,
+    private val luckPerms: LuckPerms? = null
+) {
 
     /**
-     * Sets the check that decides which group a player gets when the group source is `config`.
+     * Sets the check that decides which group a player gets and whether they may use the prefixes commands.
      */
-    fun groupPermission(check: BiPredicate<Player, String>): PrefixesMinestomBuilder {
-        this.groupPermission = check
-        return this
-    }
+    fun permission(check: BiPredicate<Player, String>): PrefixesMinestomBuilder = copy(permission = check)
 
-    /**
-     * Sets whether the prefixes commands are registered.
-     */
-    fun registerCommands(enabled: Boolean): PrefixesMinestomBuilder {
-        this.registerCommands = enabled
-        return this
-    }
+    /** Sets whether the prefixes commands are registered. */
+    fun registerCommands(enabled: Boolean): PrefixesMinestomBuilder = copy(registerCommands = enabled)
 
-    /**
-     * Sets the check that decides whether a player may use a prefixes command.
-     * The console is always allowed. Without a check, only players with permission level 4 are allowed.
-     */
-    fun commandPermission(check: BiPredicate<Player, String>): PrefixesMinestomBuilder {
-        this.commandPermission = check
-        return this
-    }
+    /** Sets the [LuckPerms] instance, only needed when it is not available through the LuckPerms provider. */
+    fun luckPerms(luckPerms: LuckPerms): PrefixesMinestomBuilder = copy(luckPerms = luckPerms)
 
-    /**
-     * Creates the instance and starts prefixes.
-     */
-    fun enable(): PrefixesMinestom {
-        return PrefixesMinestom(directory, luckPerms, groupPermission, registerCommands, commandPermission).init()
-    }
+    /** Creates the instance and starts prefixes. */
+    fun enable(): PrefixesMinestom = PrefixesMinestom.start(directory, permission, registerCommands, luckPerms)
 }
