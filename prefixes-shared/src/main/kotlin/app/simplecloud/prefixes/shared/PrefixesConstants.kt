@@ -1,5 +1,6 @@
 package app.simplecloud.prefixes.shared
 
+import app.simplecloud.prefixes.shared.utilities.PrefixesCoroutineDetails
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -24,8 +25,21 @@ object PrefixesConstants {
         CoroutineName("simplecloud-prefixes") +
                 SupervisorJob() +
                 Dispatchers.IO +
-                CoroutineExceptionHandler { _, exception ->
-                    LOGGER.error("An error occurred in a coroutine", exception)
+                CoroutineExceptionHandler { context, exception ->
+                    val details = context[PrefixesCoroutineDetails]
+                    if (details == null) {
+                        LOGGER.error("An error occurred in a coroutine!", exception)
+                        return@CoroutineExceptionHandler
+                    }
+
+                    LOGGER.error(
+                        """
+                        An error occurred in a coroutine!
+                         - Player: ${details.player ?: "N/A"}
+                         - Launch reason: ${details.reason}
+                        """.trimIndent(),
+                        exception
+                    )
                 }
     )
 

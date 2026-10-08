@@ -7,6 +7,7 @@ import app.simplecloud.prefixes.shared.sync.tablist.ProfileProperty
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
 import app.simplecloud.prefixes.shared.sync.tablist.TablistGameMode
 import app.simplecloud.prefixes.shared.PrefixesConstants
+import app.simplecloud.prefixes.shared.utilities.PrefixesCoroutineDetails
 import app.simplecloud.prefixes.shared.utilities.PlayerDisplayFormatter
 import com.destroystokyo.paper.ClientOption
 import io.papermc.paper.adventure.PaperAdventure
@@ -45,7 +46,7 @@ class PaperDisplayManager(
     }
 
     fun updatePlayer(player: Player) {
-        PrefixesConstants.SCOPE.launch {
+        PrefixesConstants.SCOPE.launch(PrefixesCoroutineDetails("${player.name} (${player.uniqueId})", "update player")) {
             val group = prefixes.api.getPrimaryGroup(player.uniqueId).await()
             Bukkit.getScheduler().runTask(plugin, Runnable {
                 if (!player.isOnline) return@Runnable

@@ -102,7 +102,7 @@ class PrefixesApiImpl(
 
     override fun reset(id: UUID) {
         dataRegistry.reset(id)
-        notifyChange(id)
+        notifyDataChange(id)
     }
 
     override fun reset(targets: Audience) {
@@ -113,7 +113,7 @@ class PrefixesApiImpl(
         val viewerIds = AudienceResolver.resolveIds(viewers)
         AudienceResolver.resolveIds(targets).forEach { id ->
             viewerIds.forEach { viewer -> dataRegistry.reset(id, viewer) }
-            notifyChange(id)
+            notifyDataChange(id)
         }
     }
 
@@ -134,7 +134,7 @@ class PrefixesApiImpl(
     private fun set(id: UUID, override: PrefixesOverride) {
         if (!platform.isOnline(id)) return
         dataRegistry.set(id, override)
-        notifyChange(id)
+        notifyDataChange(id)
     }
 
     private fun set(id: UUID, override: PrefixesOverride, viewers: Audience) {
@@ -144,14 +144,14 @@ class PrefixesApiImpl(
     private fun set(id: UUID, override: PrefixesOverride, viewers: List<UUID>) {
         if (!platform.isOnline(id)) return
         viewers.forEach { viewer -> dataRegistry.set(id, viewer, override) }
-        notifyChange(id)
+        notifyDataChange(id)
     }
 
     private suspend fun findGroup(name: String): PrefixesGroup? {
         return getGroups().await().firstOrNull { group -> group.name.equals(name, ignoreCase = true) }
     }
 
-    private fun notifyChange(id: UUID) {
+    private fun notifyDataChange(id: UUID) {
         listeners.forEach { listener -> listener.onPlayerDataChange(id) }
     }
 }

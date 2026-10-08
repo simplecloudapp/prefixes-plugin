@@ -7,6 +7,7 @@ import app.simplecloud.prefixes.shared.sync.tablist.ProfileProperty
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
 import app.simplecloud.prefixes.shared.sync.tablist.TablistGameMode
 import app.simplecloud.prefixes.shared.PrefixesConstants
+import app.simplecloud.prefixes.shared.utilities.PrefixesCoroutineDetails
 import app.simplecloud.prefixes.shared.utilities.PlayerDisplayFormatter
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
@@ -31,7 +32,7 @@ class MinestomDisplayManager(
     private val entries = ConcurrentHashMap<UUID, TablistEntry>()
 
     fun updatePlayer(player: Player) {
-        PrefixesConstants.SCOPE.launch {
+        PrefixesConstants.SCOPE.launch(PrefixesCoroutineDetails("${player.username} (${player.uuid})", "update player")) {
             val group = prefixes.api.getPrimaryGroup(player.uuid).await()
             MinecraftServer.getSchedulerManager().scheduleNextTick {
                 if (!player.isOnline) return@scheduleNextTick

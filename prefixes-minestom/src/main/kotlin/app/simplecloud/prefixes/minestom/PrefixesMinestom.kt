@@ -12,6 +12,7 @@ import app.simplecloud.prefixes.minestom.platform.MinestomPrefixesListener
 import app.simplecloud.prefixes.shared.Prefixes
 import app.simplecloud.prefixes.shared.command.PrefixesCommand
 import app.simplecloud.prefixes.shared.PrefixesConstants
+import app.simplecloud.prefixes.shared.utilities.PrefixesCoroutineDetails
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -82,7 +83,7 @@ class PrefixesMinestom internal constructor(
         )
         sync.publisher.publishTablistRequest()
 
-        PrefixesConstants.SCOPE.launch {
+        PrefixesConstants.SCOPE.launch(PrefixesCoroutineDetails(null, "publish tablist")) {
             while (isActive) {
                 delay(30.seconds)
                 MinecraftServer.getSchedulerManager().scheduleNextTick { manager.publishAll() }
