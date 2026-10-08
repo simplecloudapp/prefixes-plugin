@@ -10,8 +10,6 @@ import org.slf4j.LoggerFactory
 
 object PrefixesConstants {
 
-    const val LOGGER_NAME = "simplecloud-prefixes"
-
     const val CONFIG_SOURCE = "config"
 
     const val CURRENT_SYNC_SOURCE = "CURRENT"
@@ -20,7 +18,7 @@ object PrefixesConstants {
     const val DEFAULT_DISPLAY_NAME = "<color><playername>"
     const val DEFAULT_CHAT_FORMAT = "<prefix><color><playername><suffix> <#475569>» <#F8FAFC><message>"
 
-    val LOGGER: Logger = LoggerFactory.getLogger(LOGGER_NAME)
+    val LOGGER: Logger = LoggerFactory.getLogger("simplecloud-prefixes")
 
     val SCOPE = CoroutineScope(
         CoroutineName("simplecloud-prefixes") +

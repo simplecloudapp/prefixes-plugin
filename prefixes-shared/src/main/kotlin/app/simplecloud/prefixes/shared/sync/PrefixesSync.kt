@@ -13,7 +13,7 @@ class PrefixesSync(
     config: ConfigurationFactory<PrefixesConfig>
 ) {
 
-    private val logger = LoggerFactory.getLogger(PrefixesConstants.LOGGER_NAME)
+    private val logger = PrefixesConstants.LOGGER
     private val connection = createNatsConnection()
     private val api = CloudApi.create()
     private val subjects = PrefixesSubjects(api.networkId)

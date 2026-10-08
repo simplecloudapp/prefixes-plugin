@@ -16,13 +16,12 @@ import app.simplecloud.prefixes.shared.platform.PrefixesPlatform
 import app.simplecloud.prefixes.shared.sync.PrefixesSync
 import app.simplecloud.prefixes.shared.utilities.ColorParser
 import kotlinx.coroutines.cancelChildren
-import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 
 class Prefixes(private val platform: PrefixesPlatform) {
 
-    private val logger = LoggerFactory.getLogger(PrefixesConstants.LOGGER_NAME)
+    private val logger = PrefixesConstants.LOGGER
     private val listeners = CopyOnWriteArrayList<PrefixesListener>()
 
     val config = createConfig()
@@ -63,10 +62,6 @@ class Prefixes(private val platform: PrefixesPlatform) {
         }.onFailure { throwable ->
             logger.error("Failed to reload simplecloud prefixes", throwable)
         }.isSuccess
-    }
-
-    fun getPlatform(): PrefixesPlatform {
-        return platform
     }
 
     private fun validateConfig() {
