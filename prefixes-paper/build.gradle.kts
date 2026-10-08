@@ -43,7 +43,7 @@ modrinth {
         "26.2",
         "26.3",
     )
-    loaders.addAll("paper", "purpur")
+    loaders.addAll("paper", "purpur", "folia")
     changelog.set("https://docs.simplecloud.app/changelog")
     syncBodyFrom.set(rootProject.file("README.md").readText())
 }

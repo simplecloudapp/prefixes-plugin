@@ -37,10 +37,8 @@ class PaperPrefixesListener(
     }
 
     override fun onPlayerDataChange(id: UUID) {
-        Bukkit.getScheduler().runTask(plugin, Runnable {
-            val player = Bukkit.getPlayer(id) ?: return@Runnable
-            manager.render(player)
-        })
+        val player = Bukkit.getPlayer(id) ?: return
+        player.scheduler.run(plugin, { manager.show(player) }, null)
     }
 
     override fun onAllPlayersUpdate() {

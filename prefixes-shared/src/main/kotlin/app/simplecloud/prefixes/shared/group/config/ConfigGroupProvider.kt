@@ -27,16 +27,16 @@ class ConfigGroupProvider(
     }
 
     override fun getGroup(id: UUID): CompletableFuture<PrefixesGroup?> {
-        return PrefixesConstants.SCOPE.future {
-            val groups = loadGroups()
-            val config = configFactory.get()
+        val groups = loadGroups()
+        val config = configFactory.get()
 
-            val group = groups.firstOrNull {
-                !it.name.equals(config.general.defaultGroup, ignoreCase = true) && it.hasPermission(id)
-            }
-
-            group ?: groups.firstOrNull { it.name.equals(config.general.defaultGroup, ignoreCase = true) }
+        val group = groups.firstOrNull {
+            !it.name.equals(config.general.defaultGroup, ignoreCase = true) && it.hasPermission(id)
         }
+
+        return CompletableFuture.completedFuture(
+            group ?: groups.firstOrNull { it.name.equals(config.general.defaultGroup, ignoreCase = true) }
+        )
     }
 
     override fun addGroup(group: PrefixesGroup): CompletableFuture<Boolean> {

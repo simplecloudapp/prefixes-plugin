@@ -18,18 +18,14 @@ class LuckPermsListener(
 
     fun register() {
         luckPerms.eventBus.subscribe(plugin, UserDataRecalculateEvent::class.java) { event ->
-            val id = event.user.uniqueId
-            Bukkit.getScheduler().runTask(plugin, Runnable { updatePlayer(id) })
+            updatePlayer(event.user.uniqueId)
         }
 
         luckPerms.eventBus.subscribe(plugin, NodeMutateEvent::class.java) { event ->
-            val target = event.target
-            Bukkit.getScheduler().runTask(plugin, Runnable {
-                when (target) {
-                    is User -> updatePlayer(target.uniqueId)
-                    is Group -> updateAllPlayers()
-                }
-            })
+            when (val target = event.target) {
+                is User -> updatePlayer(target.uniqueId)
+                is Group -> updateAllPlayers()
+            }
         }
     }
 

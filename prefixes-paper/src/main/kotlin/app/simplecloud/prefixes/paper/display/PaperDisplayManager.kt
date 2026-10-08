@@ -40,19 +40,18 @@ class PaperDisplayManager(
 
     fun addPlayer(player: Player) {
         updatePlayer(player)
-        Bukkit.getScheduler().runTask(plugin, Runnable {
-            if (player.isOnline && !registry.isLoaded(player.uniqueId)) publish(player)
-        })
+        player.scheduler.run(plugin, {
+            if (!registry.isLoaded(player.uniqueId)) publish(player)
+        }, null)
     }
 
     fun updatePlayer(player: Player) {
         PrefixesConstants.SCOPE.launch(PrefixesCoroutineDetails("${player.name} (${player.uniqueId})", "update player")) {
             val group = prefixes.api.getPrimaryGroup(player.uniqueId).await()
-            Bukkit.getScheduler().runTask(plugin, Runnable {
-                if (!player.isOnline) return@Runnable
+            player.scheduler.run(plugin, {
                 registry.loadGroup(player.uniqueId, group)
-                render(player)
-            })
+                show(player)
+            }, null)
         }
     }
 
@@ -73,14 +72,14 @@ class PaperDisplayManager(
         Bukkit.getOnlinePlayers().forEach { player -> player.playerListName(null) }
     }
 
-    fun render(player: Player) {
+    fun show(player: Player) {
         if (!player.isOnline) return
         val data = registry.getData(player.uniqueId) ?: return
         val features = prefixes.config.get().features
 
         player.playerListName(if (features.tablist) PlayerDisplayFormatter.formatTablistName(data, player.name) else null)
         val team = createTeam(player, data)
-        Bukkit.getOnlinePlayers().forEach { viewer -> renderFor(player, viewer, team) }
+        Bukkit.getOnlinePlayers().forEach { viewer -> showTo(player, viewer, team) }
 
         val name = customNameManager.forEntity(player)
         name.setName { viewer -> (registry.getViewerData(player.uniqueId, viewer) ?: data).displayName }
@@ -92,17 +91,19 @@ class PaperDisplayManager(
     fun addViewer(viewer: Player) {
         Bukkit.getOnlinePlayers().forEach { player ->
             val data = registry.getData(player.uniqueId) ?: return@forEach
-            renderFor(player, viewer, createTeam(player, data))
+            showTo(player, viewer, createTeam(player, data))
         }
     }
 
     fun publishAll(force: Boolean = false) {
-        Bukkit.getOnlinePlayers()
-            .filter { player -> registry.isLoaded(player.uniqueId) }
-            .forEach { player -> publish(player, force) }
+        Bukkit.getOnlinePlayers().forEach { player ->
+            player.scheduler.run(plugin, {
+                if (registry.isLoaded(player.uniqueId)) publish(player, force)
+            }, null)
+        }
     }
 
-    private fun renderFor(player: Player, viewer: Player, team: PaperPlayerTeam?) {
+    private fun showTo(player: Player, viewer: Player, team: PaperPlayerTeam?) {
         val viewerData = registry.getViewerData(player.uniqueId, viewer.uniqueId)
         if (viewerData == null) {
             updateTeam(player, viewer, team)
@@ -148,18 +149,19 @@ class PaperDisplayManager(
     }
 
     private fun updateTeam(player: Player, viewer: Player, team: PaperPlayerTeam?) {
-        val key = ViewerKey(player.uniqueId, viewer.uniqueId)
-        removeTeam(key)
-        if (team == null) return
-
-        teams[key] = team
-        send(viewer, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true))
+        teams.compute(ViewerKey(player.uniqueId, viewer.uniqueId)) { _, current ->
+            if (current != null) send(viewer, ClientboundSetPlayerTeamPacket.createRemovePacket(current))
+            if (team != null) send(viewer, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true))
+            team
+        }
     }
 
     private fun removeTeam(key: ViewerKey) {
-        val team = teams.remove(key) ?: return
-        val viewer = Bukkit.getPlayer(key.viewer) ?: return
-        send(viewer, ClientboundSetPlayerTeamPacket.createRemovePacket(team))
+        teams.computeIfPresent(key) { _, team ->
+            val viewer = Bukkit.getPlayer(key.viewer)
+            if (viewer != null) send(viewer, ClientboundSetPlayerTeamPacket.createRemovePacket(team))
+            null
+        }
     }
 
     private fun createListNamePacket(player: Player, name: Component): ClientboundPlayerInfoUpdatePacket {

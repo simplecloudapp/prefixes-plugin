@@ -37,7 +37,7 @@ class MinestomPrefixesListener(
     override fun onPlayerDataChange(id: UUID) {
         MinecraftServer.getSchedulerManager().scheduleNextTick {
             val player = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(id) ?: return@scheduleNextTick
-            manager.render(player)
+            manager.show(player)
         }
     }
 

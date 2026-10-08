@@ -55,10 +55,10 @@ class PrefixesPaper : JavaPlugin() {
         val sync = prefixes.sync ?: return
 
         sync.subscriber.subscribeChatMessage { message -> Bukkit.getServer().sendMessage(message) }
-        sync.subscriber.subscribeTablist(tablist::update, tablist::remove) { Bukkit.getScheduler().runTask(this, Runnable { manager.publishAll(true) }) }
+        sync.subscriber.subscribeTablist(tablist::update, tablist::remove) { manager.publishAll(true) }
         sync.publisher.publishTablistRequest()
 
-        Bukkit.getScheduler().runTaskTimer(this, Runnable { manager.publishAll() }, 600L, 600L)
+        Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, { manager.publishAll() }, 600L, 600L)
     }
 
     private fun registerLuckPermsListener(platform: PrefixesPlatform, manager: PaperDisplayManager) {

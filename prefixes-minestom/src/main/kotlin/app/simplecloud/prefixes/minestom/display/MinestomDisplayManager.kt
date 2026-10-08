@@ -37,7 +37,7 @@ class MinestomDisplayManager(
             MinecraftServer.getSchedulerManager().scheduleNextTick {
                 if (!player.isOnline) return@scheduleNextTick
                 registry.loadGroup(player.uuid, group)
-                render(player)
+                show(player)
             }
         }
     }
@@ -60,14 +60,14 @@ class MinestomDisplayManager(
         onlinePlayers().forEach { player -> player.displayName = null }
     }
 
-    fun render(player: Player) {
+    fun show(player: Player) {
         if (!player.isOnline) return
         val data = registry.getData(player.uuid) ?: return
 
         player.displayName = if (prefixes.config.get().features.tablist) PlayerDisplayFormatter.formatTablistName(data, player.username) else null
 
         val team = createTeam(player, data)
-        onlinePlayers().forEach { viewer -> renderFor(player, viewer, team) }
+        onlinePlayers().forEach { viewer -> showTo(player, viewer, team) }
 
         updateNameTag(player, data)
         publish(player)
@@ -81,7 +81,7 @@ class MinestomDisplayManager(
     fun addViewer(viewer: Player) {
         onlinePlayers().forEach { player ->
             val data = registry.getData(player.uuid) ?: return@forEach
-            renderFor(player, viewer, createTeam(player, data))
+            showTo(player, viewer, createTeam(player, data))
         }
     }
 
@@ -89,7 +89,7 @@ class MinestomDisplayManager(
         onlinePlayers().forEach { player -> publish(player, force) }
     }
 
-    private fun renderFor(player: Player, viewer: Player, team: TeamsPacket?) {
+    private fun showTo(player: Player, viewer: Player, team: TeamsPacket?) {
         val viewerData = registry.getViewerData(player.uuid, viewer.uuid)
         if (viewerData == null) {
             updateTeam(player, viewer, team)
