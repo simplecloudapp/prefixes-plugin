@@ -1,10 +1,10 @@
 package app.simplecloud.prefixes.minestom
 
 import app.simplecloud.prefixes.api.PrefixesApi
+import app.simplecloud.prefixes.api.PrefixesApiProvider
 import app.simplecloud.prefixes.minestom.command.PrefixesMinestomSenderMapper
 import app.simplecloud.prefixes.minestom.display.MinestomDisplayManager
 import app.simplecloud.prefixes.minestom.display.MinestomTablist
-import app.simplecloud.prefixes.minestom.listener.LuckPermsListener
 import app.simplecloud.prefixes.minestom.listener.PlayerListener
 import app.simplecloud.prefixes.minestom.permission.MinestomPermissions
 import app.simplecloud.prefixes.minestom.platform.MinestomPlatformImpl
@@ -33,16 +33,13 @@ class PrefixesMinestom private constructor(
     luckPerms: LuckPerms?
 ) {
 
-    private val node = EventNode.all("simplecloud-prefixes")
+    private val node = EventNode.all("simplecloud-prefixes").setPriority(Int.MAX_VALUE)
     private val permissions = MinestomPermissions(permission)
     private val platform = MinestomPlatformImpl(directory, permissions.getChecker(), luckPerms)
     private val prefixes = Prefixes(platform)
     private val manager = MinestomDisplayManager(prefixes, CustomNamesMinestom.getManager())
     private val tablist = MinestomTablist()
     private val logger = PrefixesConstants.LOGGER
-
-    /** Gets the [PrefixesApi] instance. */
-    fun getApi(): PrefixesApi = prefixes.api
 
     fun shutdown() {
         MinecraftServer.getGlobalEventHandler().removeChild(node)
@@ -63,7 +60,6 @@ class PrefixesMinestom private constructor(
         }
 
         registerSync()
-        registerLuckPermsListener()
         registerCommands()
         prefixes.api.refreshAll()
     }
@@ -87,11 +83,6 @@ class PrefixesMinestom private constructor(
         }
     }
 
-    private fun registerLuckPermsListener() {
-        val luckPerms = platform.getLuckPerms() ?: return
-        LuckPermsListener(luckPerms, manager).register()
-    }
-
     private fun registerCommands() {
         if (!registerCommands) return
 
@@ -105,6 +96,10 @@ class PrefixesMinestom private constructor(
     }
 
     companion object {
+        /** Returns the [PrefixesApi] instance, throws an [IllegalStateException] if prefixes is not enabled yet. */
+        @JvmStatic
+        fun getApi(): PrefixesApi = PrefixesApiProvider.get()
+
         /** Creates a [PrefixesMinestomBuilder] config files are created in [directory]. */
         @JvmStatic
         fun builder(directory: Path): PrefixesMinestomBuilder = PrefixesMinestomBuilder(directory)

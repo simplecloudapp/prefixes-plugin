@@ -3,11 +3,6 @@ plugins {
     alias(libs.plugins.paperweight.userdev)
 }
 
-val customNames = rootProject.layout.projectDirectory.dir("custom-names")
-require(customNames.dir("custom-names-paper/src/main/kotlin").asFile.isDirectory) {
-    "The custom-names submodule is missing. Run `git submodule update --init --recursive`."
-}
-
 dependencies {
     api(project(":prefixes-shared"))
     compileOnly(libs.paper.api)
@@ -19,8 +14,8 @@ dependencies {
 sourceSets {
     main {
         kotlin {
-            srcDir(customNames.dir("custom-names-api/src/main/kotlin"))
-            srcDir(customNames.dir("custom-names-paper/src/main/kotlin"))
+            srcDir(rootProject.layout.projectDirectory.dir("custom-names").dir("custom-names-api/src/main/kotlin"))
+            srcDir(rootProject.layout.projectDirectory.dir("custom-names").dir("custom-names-paper/src/main/kotlin"))
             exclude("**/CustomNamesPlugin.kt")
         }
     }

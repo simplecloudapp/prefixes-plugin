@@ -48,7 +48,6 @@ class MinestomDisplayManager(
         teams.keys.filter { key -> key.target == id || key.viewer == id }.forEach { key ->
             if (key.viewer == id) teams.remove(key) else removeTeam(key)
         }
-        customNameManager.unregister(player)
 
         entries.remove(id)
         prefixes.sync?.publisher?.publishTablistRemove(id)

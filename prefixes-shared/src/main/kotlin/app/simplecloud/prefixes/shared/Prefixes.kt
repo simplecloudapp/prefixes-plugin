@@ -11,11 +11,13 @@ import app.simplecloud.prefixes.shared.data.PrefixesDataRegistry
 import app.simplecloud.prefixes.shared.group.GroupProviderRegistry
 import app.simplecloud.prefixes.shared.group.config.ConfigGroupProvider
 import app.simplecloud.prefixes.shared.group.luckperms.LuckPermsGroupProvider
+import app.simplecloud.prefixes.shared.group.luckperms.LuckPermsListener
 import app.simplecloud.prefixes.shared.platform.PrefixesListener
 import app.simplecloud.prefixes.shared.platform.PrefixesPlatform
 import app.simplecloud.prefixes.shared.sync.PrefixesSync
 import app.simplecloud.prefixes.shared.utilities.ColorParser
 import kotlinx.coroutines.cancelChildren
+import net.luckperms.api.event.EventSubscription
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -23,6 +25,8 @@ class Prefixes(private val platform: PrefixesPlatform) {
 
     private val logger = PrefixesConstants.LOGGER
     private val listeners = CopyOnWriteArrayList<PrefixesListener>()
+    private val subscriptions = CopyOnWriteArrayList<EventSubscription<*>>()
+    private val luckPerms = platform.getLuckPerms()
 
     val config = createConfig()
     val messages = createMessages()
@@ -35,9 +39,14 @@ class Prefixes(private val platform: PrefixesPlatform) {
     fun startup() {
         PrefixesApiProvider.register(api)
         validateConfig()
+
+        if (luckPerms != null) {
+            subscriptions.addAll(LuckPermsListener(luckPerms, api).register())
+        }
     }
 
     fun shutdown() {
+        subscriptions.forEach { subscription -> subscription.close() }
         listeners.forEach(PrefixesListener::onShutdown)
         PrefixesApiProvider.unregister()
         sync?.shutdown()
@@ -58,7 +67,7 @@ class Prefixes(private val platform: PrefixesPlatform) {
             warnIfRestartRequired(previousSync)
             listeners.forEach(PrefixesListener::onReload)
         }.onSuccess {
-            logger.info("Succesfully reloaded simplecloud prefixes")
+            logger.info("Successfully reloaded simplecloud prefixes")
         }.onFailure { throwable ->
             logger.error("Failed to reload simplecloud prefixes", throwable)
         }.isSuccess
@@ -99,7 +108,6 @@ class Prefixes(private val platform: PrefixesPlatform) {
     private fun createGroupRegistry(): GroupProviderRegistry {
         val registry = GroupProviderRegistry(config, ConfigGroupProvider(config, platform.getPermissionChecker()))
 
-        val luckPerms = platform.getLuckPerms()
         if (luckPerms != null) {
             registry.register(LuckPermsGroupProvider(luckPerms))
         }

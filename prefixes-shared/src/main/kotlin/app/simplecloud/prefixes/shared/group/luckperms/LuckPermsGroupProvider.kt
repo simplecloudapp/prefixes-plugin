@@ -8,6 +8,7 @@ import app.simplecloud.prefixes.shared.PrefixesConstants
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.future.future
 import net.luckperms.api.LuckPerms
+import net.luckperms.api.model.data.NodeMap
 import net.luckperms.api.model.group.Group
 import net.luckperms.api.model.user.User
 import net.luckperms.api.node.types.MetaNode
@@ -78,9 +79,13 @@ class LuckPermsGroupProvider(
         }
 
         data.add(MetaNode.builder("color", ColorParser.serialize(source.color)).build())
+        addMeta(data, "display-name", source.displayName)
+        addMeta(data, "chat-format", source.chatFormat)
+    }
 
-        data.add(MetaNode.builder("display-name", source.displayName).build())
-        data.add(MetaNode.builder("chat-format", source.chatFormat).build())
+    private fun addMeta(data: NodeMap, key: String, value: String) {
+        if (value.isBlank()) return
+        data.add(MetaNode.builder(key, value).build())
     }
 
     private fun resolveGroup(user: User): PrefixesGroup? {

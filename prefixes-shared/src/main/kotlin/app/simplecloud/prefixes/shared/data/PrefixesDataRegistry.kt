@@ -19,8 +19,6 @@ class PrefixesDataRegistry(private val platform: PrefixesPlatform) {
     private val overrides = ConcurrentHashMap<UUID, PrefixesOverride>()
     private val viewerOverrides = ConcurrentHashMap<ViewerKey, PrefixesOverride>()
 
-    fun isLoaded(id: UUID): Boolean = groups.containsKey(id)
-
     fun getData(id: UUID): PrefixesPlayerData? {
         val group = groups[id] ?: return null
         return createData(id, group.merge(overrides[id]))

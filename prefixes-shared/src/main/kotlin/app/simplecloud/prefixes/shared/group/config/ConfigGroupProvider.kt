@@ -20,7 +20,7 @@ class ConfigGroupProvider(
 
     private val logger = PrefixesConstants.LOGGER
 
-    override fun getName(): String = "config"
+    override fun getName(): String = PrefixesConstants.CONFIG_SOURCE
 
     override fun getGroups(): CompletableFuture<Collection<PrefixesGroup>> {
         return CompletableFuture.completedFuture(loadGroups())
@@ -28,15 +28,8 @@ class ConfigGroupProvider(
 
     override fun getGroup(id: UUID): CompletableFuture<PrefixesGroup?> {
         val groups = loadGroups()
-        val config = configFactory.get()
-
-        val group = groups.firstOrNull {
-            !it.name.equals(config.general.defaultGroup, ignoreCase = true) && it.hasPermission(id)
-        }
-
-        return CompletableFuture.completedFuture(
-            group ?: groups.firstOrNull { it.name.equals(config.general.defaultGroup, ignoreCase = true) }
-        )
+        val group = groups.firstOrNull { !isDefault(it) && it.hasPermission(id) } ?: groups.firstOrNull(::isDefault)
+        return CompletableFuture.completedFuture(group)
     }
 
     override fun addGroup(group: PrefixesGroup): CompletableFuture<Boolean> {
@@ -63,6 +56,9 @@ class ConfigGroupProvider(
             .map { ConfigPrefixesGroup(it, permissionChecker) }
             .sortedByDescending { it.priority }
     }
+
+    private fun isDefault(group: PrefixesGroup): Boolean =
+        group.name.equals(configFactory.get().general.defaultGroup, ignoreCase = true)
 
     private fun createConfigGroup(group: PrefixesGroup) = ConfigGroup(
         name = group.name,

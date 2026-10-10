@@ -38,13 +38,6 @@ class PaperDisplayManager(
     private val teams = ConcurrentHashMap<ViewerKey, PaperPlayerTeam>()
     private val entries = ConcurrentHashMap<UUID, TablistEntry>()
 
-    fun addPlayer(player: Player) {
-        updatePlayer(player)
-        player.scheduler.run(plugin, {
-            if (!registry.isLoaded(player.uniqueId)) publish(player)
-        }, null)
-    }
-
     fun updatePlayer(player: Player) {
         PrefixesConstants.SCOPE.launch(PrefixesCoroutineDetails("${player.name} (${player.uniqueId})", "update player")) {
             val group = prefixes.api.getPrimaryGroup(player.uniqueId).await()
@@ -97,9 +90,7 @@ class PaperDisplayManager(
 
     fun publishAll(force: Boolean = false) {
         Bukkit.getOnlinePlayers().forEach { player ->
-            player.scheduler.run(plugin, {
-                if (registry.isLoaded(player.uniqueId)) publish(player, force)
-            }, null)
+            player.scheduler.run(plugin, { publish(player, force) }, null)
         }
     }
 
@@ -119,13 +110,13 @@ class PaperDisplayManager(
     private fun publish(player: Player, force: Boolean = false) {
         if (!prefixes.config.get().isTablistSynced()) return
         val publisher = prefixes.sync?.publisher ?: return
+        val data = registry.getData(player.uniqueId) ?: return
 
-        val data = registry.getData(player.uniqueId)
         val entry = TablistEntry(
             uniqueId = player.uniqueId,
             name = player.name,
-            displayName = if (data == null) Component.text(player.name) else PlayerDisplayFormatter.formatTablistName(data, player.name),
-            priority = data?.priority ?: 0,
+            displayName = PlayerDisplayFormatter.formatTablistName(data, player.name),
+            priority = data.priority,
             profileProperties = player.playerProfile.properties.map { property -> ProfileProperty(property.name, property.value, property.signature) },
             latency = player.ping,
             gameMode = TablistGameMode.valueOf(player.gameMode.name),

@@ -1,6 +1,6 @@
 package app.simplecloud.prefixes.paper.display
 
-import app.simplecloud.prefixes.shared.sync.tablist.SourcedTablistEntry
+import app.simplecloud.prefixes.shared.sync.tablist.SyncedTablist
 import app.simplecloud.prefixes.shared.sync.tablist.TablistEntry
 import com.google.common.collect.ImmutableMultimap
 import com.mojang.authlib.GameProfile
@@ -18,58 +18,13 @@ import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import java.util.EnumSet
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
 
-class PaperTablist {
+class PaperTablist : SyncedTablist<Player, Packet<*>>() {
 
-    private val entries = ConcurrentHashMap<UUID, SourcedTablistEntry>()
+    override fun isOnline(id: UUID): Boolean = Bukkit.getPlayer(id) != null
 
-    fun update(publisherId: String, entry: TablistEntry) {
-        if (Bukkit.getPlayer(entry.uniqueId) != null) return
-
-        val previous = entries.put(entry.uniqueId, SourcedTablistEntry(publisherId, entry))?.entry
-        if (previous != entry) {
-            broadcast(createInfoPacket(listOf(entry)))
-        }
-        if (previous == null || previous.name != entry.name || previous.priority != entry.priority) {
-            if (previous != null) broadcast(ClientboundSetPlayerTeamPacket.createRemovePacket(createTeam(previous)))
-            broadcast(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(createTeam(entry), true))
-        }
-    }
-
-    fun remove(id: UUID) {
-        val sourced = entries.remove(id) ?: return
-        hide(sourced.entry)
-    }
-
-    fun remove(publisherId: String, id: UUID) {
-        val sourced = entries[id] ?: return
-        if (sourced.publisherId != publisherId) return
-        if (entries.remove(id, sourced)) hide(sourced.entry)
-    }
-
-    fun clear() {
-        entries.keys.toList().forEach(::remove)
-    }
-
-    fun sync(player: Player) {
-        val visible = entries.values.map(SourcedTablistEntry::entry).filter { entry -> Bukkit.getPlayer(entry.uniqueId) == null }
-
-        visible.chunked(100).forEach { batch -> send(player, createInfoPacket(batch)) }
-        visible.forEach { entry -> send(player, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(createTeam(entry), true)) }
-    }
-
-    private fun hide(entry: TablistEntry) {
-        broadcast(ClientboundSetPlayerTeamPacket.createRemovePacket(createTeam(entry)))
-        if (Bukkit.getPlayer(entry.uniqueId) == null) {
-            broadcast(ClientboundPlayerInfoRemovePacket(listOf(entry.uniqueId)))
-        }
-    }
-
-    private fun createTeam(entry: TablistEntry): PaperPlayerTeam = PaperPlayerTeam(entry.name, entry.priority, hideNameTag = true)
-
-    private fun createInfoPacket(tablistEntries: Collection<TablistEntry>): ClientboundPlayerInfoUpdatePacket {
-        val packetEntries = tablistEntries.map { entry ->
+    override fun createInfoPacket(entries: List<TablistEntry>): Packet<*> {
+        val packetEntries = entries.map { entry ->
             ClientboundPlayerInfoUpdatePacket.Entry(
                 entry.uniqueId,
                 createGameProfile(entry),
@@ -85,6 +40,24 @@ class PaperTablist {
 
         return ClientboundPlayerInfoUpdatePacket(getUpdateActions(), packetEntries)
     }
+
+    override fun createInfoRemovePacket(id: UUID): Packet<*> = ClientboundPlayerInfoRemovePacket(listOf(id))
+
+    override fun createTeamPacket(entry: TablistEntry): Packet<*> =
+        ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(createTeam(entry), true)
+
+    override fun createTeamRemovePacket(entry: TablistEntry): Packet<*> =
+        ClientboundSetPlayerTeamPacket.createRemovePacket(createTeam(entry))
+
+    override fun send(player: Player, packet: Packet<*>) {
+        (player as CraftPlayer).handle.connection.send(packet)
+    }
+
+    override fun broadcast(packet: Packet<*>) {
+        Bukkit.getOnlinePlayers().forEach { player -> send(player, packet) }
+    }
+
+    private fun createTeam(entry: TablistEntry): PaperPlayerTeam = PaperPlayerTeam(entry.name, entry.priority, hideNameTag = true)
 
     private fun getUpdateActions(): EnumSet<Action> = EnumSet.of(
         Action.ADD_PLAYER,
@@ -102,13 +75,5 @@ class PaperTablist {
             properties.put(property.name, Property(property.name, property.value, property.signature))
         }
         return GameProfile(entry.uniqueId, entry.name, PropertyMap(properties.build()))
-    }
-
-    private fun broadcast(packet: Packet<*>) {
-        Bukkit.getOnlinePlayers().forEach { player -> send(player, packet) }
-    }
-
-    private fun send(player: Player, packet: Packet<*>) {
-        (player as CraftPlayer).handle.connection.send(packet)
     }
 }
