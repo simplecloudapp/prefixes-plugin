@@ -34,7 +34,7 @@ data class FeaturesConfig(
 
 @ConfigSerializable
 data class SyncConfig(
-    val enabled: Boolean = true,
+    val enabled: Boolean = false,
     val channels: SyncChannels = SyncChannels(),
     val sources: List<String> = listOf(PrefixesConstants.CURRENT_SYNC_SOURCE)
 )

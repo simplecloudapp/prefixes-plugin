@@ -5,7 +5,6 @@ import app.simplecloud.prefixes.minestom.display.MinestomTablist
 import app.simplecloud.prefixes.shared.Prefixes
 import app.simplecloud.prefixes.shared.utilities.PlayerDisplayFormatter
 import net.kyori.adventure.text.Component
-import net.minestom.server.MinecraftServer
 import net.minestom.server.event.Event
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.player.PlayerChatEvent
@@ -44,6 +43,8 @@ class PlayerListener(
     }
 
     private fun onChat(event: PlayerChatEvent) {
+        if (event.isCancelled) return
+
         val features = prefixes.config.get().features
         if (!features.chat) return
 
@@ -60,11 +61,7 @@ class PlayerListener(
         event.recipients.removeAll(viewerMessages.map { (viewer, _) -> viewer }.toSet())
         event.formattedMessage = message
 
-        MinecraftServer.getSchedulerManager().scheduleNextTick {
-            if (event.isCancelled) return@scheduleNextTick
-
-            viewerMessages.forEach { (viewer, viewerMessage) -> viewer.sendMessage(viewerMessage) }
-            prefixes.sync?.publisher?.publishChatMessage(message)
-        }
+        viewerMessages.forEach { (viewer, viewerMessage) -> viewer.sendMessage(viewerMessage) }
+        prefixes.sync?.publisher?.publishChatMessage(message)
     }
 }

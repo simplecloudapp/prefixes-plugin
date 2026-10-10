@@ -4,7 +4,6 @@ import app.simplecloud.prefixes.shared.Prefixes
 import app.simplecloud.prefixes.shared.utilities.PrefixesPermissions
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.incendo.cloud.CommandManager
-import org.incendo.cloud.kotlin.coroutines.extension.suspendingHandler
 
 class PrefixesCommand<C : PrefixesSender>(
     private val manager: CommandManager<C>,
@@ -14,28 +13,14 @@ class PrefixesCommand<C : PrefixesSender>(
     private val messages get() = prefixes.messages.get()
 
     fun register() {
-        registerRoot()
         registerHelp()
         registerReload()
     }
 
-    private fun registerRoot() {
-        manager.command(
-            manager.commandBuilder("scprefix")
-                .handler {
-                    sendHelp(it.sender())
-                }
-        )
-    }
-
     private fun registerHelp() {
-        manager.command(
-            manager.commandBuilder("scprefix")
-                .literal("help")
-                .handler {
-                    sendHelp(it.sender())
-                }
-        )
+        val root = manager.commandBuilder("scprefix")
+        manager.command(root.handler { sendHelp(it.sender()) })
+        manager.command(root.literal("help").handler { sendHelp(it.sender()) })
     }
 
     private fun registerReload() {
@@ -43,14 +28,9 @@ class PrefixesCommand<C : PrefixesSender>(
             manager.commandBuilder("scprefix")
                 .literal("reload")
                 .permission(PrefixesPermissions.RELOAD)
-                .suspendingHandler {
-                    val sender = it.sender()
-                    val reloaded = prefixes.reload()
-                    if (reloaded) {
-                        sender.sendMessage(messages.msg(messages.command.reload.success))
-                    } else {
-                        sender.sendMessage(messages.msg(messages.command.reload.failed))
-                    }
+                .handler {
+                    val message = if (prefixes.reload()) messages.command.reload.success else messages.command.reload.failed
+                    it.sender().sendMessage(messages.msg(message))
                 }
         )
     }

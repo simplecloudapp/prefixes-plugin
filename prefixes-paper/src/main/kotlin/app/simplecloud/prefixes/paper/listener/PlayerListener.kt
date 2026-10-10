@@ -21,7 +21,7 @@ class PlayerListener(
     fun onJoin(event: PlayerJoinEvent) {
         val player = event.player
         tablist.remove(player.uniqueId)
-        manager.addPlayer(player)
+        manager.updatePlayer(player)
         manager.addViewer(player)
 
         if (prefixes.config.get().isTablistSynced()) {

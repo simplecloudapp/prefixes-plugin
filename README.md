@@ -35,7 +35,7 @@ A Paper plugin and Minestom library for prefixes, suffixes and name colors in ch
 - [x] **Network Sync**: Share chat and tab list across your SimpleCloud network.
 - [x] **MiniMessage Formats**: Fully customizable with placeholders.
 - [x] **Developer API**: Set prefixes per player or even per viewer, e.g. for teams or friends.
-- [x] **Supported Software**: Paper plugin (and forks) or Minestom library.
+- [x] **Supported Software**: Paper(and forks) and Minestom as a Library.
 
 ## Dependency
 

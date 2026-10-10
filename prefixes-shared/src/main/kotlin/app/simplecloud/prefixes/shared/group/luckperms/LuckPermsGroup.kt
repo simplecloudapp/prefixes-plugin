@@ -11,6 +11,7 @@ import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.model.group.Group
+import net.luckperms.api.model.user.User
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 
@@ -25,15 +26,20 @@ class LuckPermsGroup(
     override val prefix: Component = miniMessage.deserialize(group.cachedData.metaData.prefix ?: "")
     override val suffix: Component = miniMessage.deserialize(group.cachedData.metaData.suffix ?: "")
     override val color: TextColor = parseColor()
-    override val displayName: String = getMetaValue("display-name") ?: PrefixesConstants.DEFAULT_DISPLAY_NAME
-    override val chatFormat: String = getMetaValue("chat-format") ?: PrefixesConstants.DEFAULT_CHAT_FORMAT
+    override val displayName: String = getMetaValue("display-name") ?: ""
+    override val chatFormat: String = getMetaValue("chat-format") ?: ""
 
     override fun containsPlayer(id: UUID): CompletableFuture<Boolean> {
-        return PrefixesConstants.SCOPE.future {
-            val user = luckPerms.userManager.loadUser(id).await()
-            user.primaryGroup == name || user.getInheritedGroups(user.queryOptions).any { it.name == name }
+        val user = luckPerms.userManager.getUser(id)
+        if (user != null) {
+            return CompletableFuture.completedFuture(isMember(user))
         }
+
+        return PrefixesConstants.SCOPE.future { isMember(luckPerms.userManager.loadUser(id).await()) }
     }
+
+    private fun isMember(user: User): Boolean =
+        user.primaryGroup == name || user.getInheritedGroups(user.queryOptions).any { it.name == name }
 
     private fun parseColor(): TextColor {
         val value = getMetaValue("color") ?: return NamedTextColor.WHITE
