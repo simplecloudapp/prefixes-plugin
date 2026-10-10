@@ -22,6 +22,10 @@ allprojects {
     }
 }
 
+tasks.shadowJar {
+    enabled = false
+}
+
 subprojects {
     apply {
         plugin("org.jetbrains.kotlin.jvm")
@@ -57,6 +61,7 @@ subprojects {
         mergeServiceFiles()
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         archiveFileName.set("${project.name}.jar")
+        exclude("google/protobuf/**", "src/google/protobuf/**")
     }
 
     tasks.processResources {

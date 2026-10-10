@@ -54,7 +54,7 @@ configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref 
 configurate-kotlin = { module = "org.spongepowered:configurate-extra-kotlin", version.ref = "configurate" }
 
 protoc = { module = "com.google.protobuf:protoc", version.ref = "protoc" }
-protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf-kotlin" }
+protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf-kotlin" }
 
 jnats = { module = "io.nats:jnats", version.ref = "jnats" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }

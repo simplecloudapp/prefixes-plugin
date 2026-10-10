@@ -1,7 +1,7 @@
 dependencies {
     api(project(":prefixes-shared"))
-    implementation(libs.minestom)
-    implementation(libs.slf4j.api)
+    compileOnly(libs.minestom)
+    compileOnly(libs.slf4j.api)
     implementation(libs.cloud.command.minestom)
 }
 

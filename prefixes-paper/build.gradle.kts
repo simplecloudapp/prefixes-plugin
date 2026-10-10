@@ -24,8 +24,6 @@ sourceSets {
 tasks.shadowJar {
     relocate("com.google.protobuf", "app.simplecloud.prefixes.libs.protobuf")
     relocate("space.chunks.customname", "app.simplecloud.prefixes.libs.customname")
-    relocate("xyz.jpenilla.reflectionremapper", "app.simplecloud.prefixes.libs.reflectionremapper")
-    exclude("org/bouncycastle/jcajce/io/DigestUpdatingOutputStream.class")
 }
 
 modrinth {
