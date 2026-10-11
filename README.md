@@ -69,7 +69,7 @@ Clone the repository with its pinned Custom Names source before building:
 ```shell
 git clone --recurse-submodules https://github.com/simplecloudapp/prefixes-plugin.git
 cd prefixes-plugin
-bash ./gradlew build
+./gradlew build
 ```
 
 ## License

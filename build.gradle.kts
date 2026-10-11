@@ -9,7 +9,7 @@ plugins {
 
 allprojects {
     group = "app.simplecloud.plugin"
-    version = "1.1.0-beta.3"
+    version = "1.1.0"
 
     repositories {
         mavenCentral()
@@ -20,10 +20,6 @@ allprojects {
         maven("https://repo.simplecloud.app/snapshots")
         maven("https://buf.build/gen/maven")
     }
-}
-
-tasks.shadowJar {
-    enabled = false
 }
 
 subprojects {

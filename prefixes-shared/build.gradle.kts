@@ -53,7 +53,3 @@ configurations.all {
         force("com.google.protobuf:protobuf-javalite:4.36.2")
     }
 }
-
-tasks.shadowJar {
-    enabled = false
-}
