@@ -5,11 +5,14 @@ plugins {
 dependencies {
     api(project(":prefixes-api"))
     api(libs.simplecloud.plugin.api)
-    implementation(libs.jnats)
-    implementation(libs.protobuf.kotlin)
+    implementation(libs.jnats) {
+        // only needed for NKey
+        exclude(group = "org.bouncycastle")
+    }
+    implementation(libs.slf4j.api)
+    implementation(libs.protobuf.kotlin.lite)
     implementation(libs.bundles.configurate)
     implementation(libs.bundles.cloud.command)
-    testImplementation(libs.luckperms.api)
 }
 
 sourceSets {
@@ -34,7 +37,12 @@ protobuf {
     generateProtoTasks {
         all().forEach {
             it.builtins {
-                create("kotlin")
+                named("java") {
+                    option("lite")
+                }
+                create("kotlin") {
+                    option("lite")
+                }
             }
         }
     }
@@ -42,6 +50,6 @@ protobuf {
 
 configurations.all {
     resolutionStrategy {
-        force("com.google.protobuf:protobuf-java:4.35.1")
+        force("com.google.protobuf:protobuf-javalite:4.36.2")
     }
 }

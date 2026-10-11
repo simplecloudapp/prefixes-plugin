@@ -7,13 +7,13 @@ import org.jetbrains.annotations.ApiStatus
  */
 object PrefixesApiProvider {
 
+    @Volatile
     private var instance: PrefixesApi? = null
 
     /**
-     * Gets the registered [PrefixesApi] instance.
+     * Returns the [PrefixesApi] instance.
      *
-     * @return The prefixes API instance
-     * @throws IllegalStateException If the API is not loaded yet
+     * @throws IllegalStateException if prefixes is not loaded yet
      */
     @JvmStatic
     fun get(): PrefixesApi {

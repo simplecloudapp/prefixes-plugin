@@ -16,7 +16,7 @@ class PaperPlayerTeam(
     prefix: Component = Component.empty(),
     suffix: Component = Component.empty(),
     color: TextColor = NamedTextColor.WHITE,
-    hideNameTag: Boolean = true
+    hideNameTag: Boolean
 ) : PlayerTeam(Scoreboard(), "${PriorityFormatter.format(priority)}_$name") {
 
     init {

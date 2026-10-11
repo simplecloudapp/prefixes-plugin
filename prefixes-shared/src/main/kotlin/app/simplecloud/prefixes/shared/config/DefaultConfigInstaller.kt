@@ -5,13 +5,12 @@ import java.nio.file.Path
 
 object DefaultConfigInstaller {
 
-    private const val CONFIG_RESOURCE = "config.yml"
-
     fun install(target: Path, classLoader: ClassLoader) {
         if (Files.exists(target)) return
 
-        val resource = checkNotNull(classLoader.getResourceAsStream(CONFIG_RESOURCE)) {
-            "Missing bundled $CONFIG_RESOURCE"
+        val name = target.fileName.toString()
+        val resource = checkNotNull(classLoader.getResourceAsStream(name)) {
+            "Missing bundled $name"
         }
 
         Files.createDirectories(target.parent)

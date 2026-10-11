@@ -3,14 +3,6 @@ plugins {
     alias(libs.plugins.paperweight.userdev)
 }
 
-val customNamesRoot = rootProject.layout.projectDirectory.dir("custom-names")
-require(
-    customNamesRoot.dir("custom-names-api/src/main/kotlin").asFile.isDirectory &&
-        customNamesRoot.dir("custom-names-plugin/src/main/kotlin").asFile.isDirectory
-) {
-    "The custom-names submodule is missing. Run `git submodule update --init --recursive`."
-}
-
 dependencies {
     api(project(":prefixes-shared"))
     compileOnly(libs.paper.api)
@@ -22,8 +14,8 @@ dependencies {
 sourceSets {
     main {
         kotlin {
-            srcDir(customNamesRoot.dir("custom-names-api/src/main/kotlin"))
-            srcDir(customNamesRoot.dir("custom-names-plugin/src/main/kotlin"))
+            srcDir(rootProject.layout.projectDirectory.dir("custom-names").dir("custom-names-api/src/main/kotlin"))
+            srcDir(rootProject.layout.projectDirectory.dir("custom-names").dir("custom-names-paper/src/main/kotlin"))
             exclude("**/CustomNamesPlugin.kt")
         }
     }
@@ -32,8 +24,6 @@ sourceSets {
 tasks.shadowJar {
     relocate("com.google.protobuf", "app.simplecloud.prefixes.libs.protobuf")
     relocate("space.chunks.customname", "app.simplecloud.prefixes.libs.customname")
-    relocate("xyz.jpenilla.reflectionremapper", "app.simplecloud.prefixes.libs.reflectionremapper")
-    exclude("org/bouncycastle/jcajce/io/DigestUpdatingOutputStream.class")
 }
 
 modrinth {
@@ -44,17 +34,9 @@ modrinth {
     uploadFile.set(tasks.shadowJar)
     gameVersions.addAll(
         "26.2",
-        "26.3"
+        "26.3",
     )
-    loaders.addAll("paper", "purpur")
+    loaders.addAll("paper", "purpur", "folia")
     changelog.set("https://docs.simplecloud.app/changelog")
     syncBodyFrom.set(rootProject.file("README.md").readText())
-}
-
-// Paper bootstrap writes logs; keep regression-test output under build/.
-tasks.test {
-    workingDir = layout.buildDirectory.dir("test-server").get().asFile
-    doFirst {
-        workingDir.mkdirs()
-    }
 }

@@ -2,19 +2,25 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
+    id("maven-publish")
     alias(libs.plugins.kotlin)
     alias(libs.plugins.shadow)
 }
 
+check(file("custom-names/custom-names-api/src/main/kotlin").isDirectory) {
+    "The custom-names submodule is missing, run 'git submodule update --init' first"
+}
+
 allprojects {
     group = "app.simplecloud.plugin"
-    version = "1.0.3"
+    version = "1.1.0"
 
     repositories {
         mavenCentral()
-        maven("https://repo.papermc.io/repository/maven-public/")
         maven("https://oss.sonatype.org/content/repositories/snapshots")
         maven("https://oss.sonatype.org/content/repositories/central")
+        maven("https://repo.papermc.io/repository/maven-public/")
+        maven("https://repo.spectr.is/snapshots")
         maven("https://repo.simplecloud.app/snapshots")
         maven("https://buf.build/gen/maven")
     }
@@ -24,6 +30,7 @@ subprojects {
     apply {
         plugin("org.jetbrains.kotlin.jvm")
         plugin("com.gradleup.shadow")
+        plugin("maven-publish")
     }
 
     dependencies {
@@ -31,7 +38,6 @@ subprojects {
         testImplementation(rootProject.libs.kotlin.test)
 
         compileOnly(rootProject.libs.luckperms.api)
-        compileOnly(rootProject.libs.simplecloud.api)
     }
 
     kotlin {
@@ -53,13 +59,34 @@ subprojects {
 
     tasks.shadowJar {
         mergeServiceFiles()
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
         archiveFileName.set("${project.name}.jar")
+        exclude("google/protobuf/**", "src/google/protobuf/**")
     }
 
     tasks.processResources {
         expand(
             "version" to project.version
         )
+    }
+
+    publishing {
+        publications {
+            create<MavenPublication>("maven") {
+                from(components["java"])
+            }
+        }
+
+        repositories {
+            maven {
+                name = "simplecloud"
+                url = uri("https://repo.simplecloud.app/snapshots")
+                credentials {
+                    username = System.getenv("SIMPLECLOUD_USERNAME")
+                    password = System.getenv("SIMPLECLOUD_PASSWORD")
+                }
+            }
+        }
     }
 
 }

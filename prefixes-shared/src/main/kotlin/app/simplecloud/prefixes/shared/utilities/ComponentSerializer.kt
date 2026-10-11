@@ -7,11 +7,7 @@ object ComponentSerializer {
 
     private val serializer = GsonComponentSerializer.gson()
 
-    fun serialize(component: Component): String {
-        return serializer.serialize(component)
-    }
+    fun serialize(component: Component): String = serializer.serialize(component)
 
-    fun deserialize(json: String): Component {
-        return serializer.deserialize(json)
-    }
+    fun deserialize(json: String): Component = serializer.deserialize(json)
 }

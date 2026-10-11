@@ -7,20 +7,17 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 
 object PlayerDisplayFormatter {
 
-    fun displayName(data: PrefixesPlayerData, playerName: String, enabled: Boolean): Component {
-        return if (enabled) data.displayName else Component.text(playerName)
+    fun formatDisplayName(data: PrefixesPlayerData, playerName: String, displayNameEnabled: Boolean): Component {
+        return if (displayNameEnabled) data.displayName else Component.text(playerName)
     }
 
-    fun formatTablistName(data: PrefixesPlayerData, displayName: Component = data.displayName): Component {
-        return data.prefix.append(displayName).append(data.suffix)
+    fun formatTablistName(data: PrefixesPlayerData, playerName: String): Component {
+        return data.prefix
+            .append(Component.text(playerName, data.color))
+            .append(data.suffix)
     }
 
-    fun formatChatMessage(
-        data: PrefixesPlayerData,
-        playerName: String,
-        message: Component,
-        displayName: Component = data.displayName
-    ): Component {
+    fun formatChatMessage(data: PrefixesPlayerData, playerName: String, message: Component, displayNameEnabled: Boolean): Component {
         return miniMessage.deserialize(
             data.chatFormat,
             Placeholder.component("prefix", data.prefix),
@@ -28,7 +25,7 @@ object PlayerDisplayFormatter {
             Placeholder.styling("color", data.color),
             Placeholder.unparsed("playername", playerName),
             Placeholder.unparsed("name", playerName),
-            Placeholder.component("displayname", displayName),
+            Placeholder.component("displayname", formatDisplayName(data, playerName, displayNameEnabled)),
             Placeholder.component("message", message)
         )
     }

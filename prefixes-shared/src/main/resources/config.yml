@@ -6,12 +6,12 @@ version: 1
 # Controls how player groups are resolved.
 # ─────────────────────────────────────────────────────────────────────────────
 general:
-  # Where groups are read from.
-  # Available: CONFIG, LUCKPERMS
-  source: CONFIG
+  # Where groups are loaded from.
+  # Available: config, luckperms, or the name of a custom provider.
+  source: config
 
   # Group used when a player matches no other group.
-  # Must reference a group defined below when source is CONFIG.
+  # Must reference a group defined below when source is config.
   default-group: default
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -22,21 +22,21 @@ features:
   # Format chat messages using the group's chat-format.
   chat: true
 
-  # Apply prefixes, suffixes, colors and sorting to the tab list.
+  # Show the prefix, the colored player name and the suffix in the tab list,
+  # sorted by group priority.
   tablist: true
 
-  # Apply the group's configured display-name.
-  # When disabled, the player's normal Minecraft name is used.
+  # Show the group's display-name above the player's head.
+  # When disabled, the normal Minecraft name tag is shown instead.
   display-name: true
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Sync
 # Shares chat messages and tab list entries across the SimpleCloud network.
-# Disabling sync does not disable local formatting.
 # ─────────────────────────────────────────────────────────────────────────────
 sync:
   # Master switch for all cross-server communication.
-  enabled: true
+  enabled: false
 
   # Select which features are synchronized.
   # The corresponding feature above must also be enabled.
@@ -57,15 +57,22 @@ sync:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Groups
-# Only used when general.source is CONFIG.
+# Only used when general.source is config.
 #
-# Supported placeholders:
+# Placeholders in display-name:
 #   <prefix>       Group prefix
 #   <suffix>       Group suffix
 #   <color>        Group color
 #   <playername>   Normal Minecraft player name
+#
+# Placeholders in chat-format:
+#   <prefix>       Group prefix
+#   <suffix>       Group suffix
+#   <color>        Group color
+#   <playername>   Normal Minecraft player name (alias: <name>)
 #   <displayname>  Formatted display name
 #   <message>      Chat message
+#
 # ─────────────────────────────────────────────────────────────────────────────
 groups:
 - name: owner
@@ -77,7 +84,7 @@ groups:
   suffix: ''
   # Used by the <color> placeholder and player name coloring.
   color: '<#DC2626>'
-  # Formatted player name.
+  # Name shown above the player's head, e.g. '<prefix><color><playername>'.
   display-name: '<color><playername>'
   # Format used when features.chat is enabled.
   chat-format: '<prefix><color><playername><suffix> <#475569>» <#F8FAFC><message>'
