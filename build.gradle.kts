@@ -7,6 +7,10 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
+check(file("custom-names/custom-names-api/src/main/kotlin").isDirectory) {
+    "The custom-names submodule is missing, run 'git submodule update --init' first"
+}
+
 allprojects {
     group = "app.simplecloud.plugin"
     version = "1.1.0"
