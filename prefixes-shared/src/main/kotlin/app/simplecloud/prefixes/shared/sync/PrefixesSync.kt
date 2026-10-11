@@ -6,6 +6,7 @@ import app.simplecloud.prefixes.shared.PrefixesConstants
 import io.nats.client.Connection
 import io.nats.client.Nats
 import io.nats.client.Options
+import java.time.Duration
 
 class PrefixesSync(
     config: ConfigurationFactory<PrefixesConfig>
@@ -21,6 +22,7 @@ class PrefixesSync(
     fun shutdown() {
         runCatching {
             logger.info("Shutdown prefixes sync...")
+            connection.flush(Duration.ofSeconds(1))
             subscriber.close()
             connection.close()
         }.onFailure { throwable ->
@@ -31,12 +33,15 @@ class PrefixesSync(
     }
 
     private fun createNatsConnection(): Connection {
-        return Nats.connect(
+        val nats = Nats.connect(
             Options.builder()
                 .server(System.getenv().getOrDefault("SIMPLECLOUD_NATS_URL", "wss://nats.simplecloud.app:443"))
                 .userInfo(System.getenv().getOrDefault("SIMPLECLOUD_NETWORK_ID", "default"), System.getenv().getOrDefault("SIMPLECLOUD_NETWORK_SECRET", ""))
                 .maxReconnects(-1)
                 .build()
         )
+
+        logger.info("Connected to NATS server (${nats.connectedUrl})")
+        return nats
     }
 }

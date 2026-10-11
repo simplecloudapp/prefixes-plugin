@@ -31,7 +31,7 @@ class SyncPublisher(
         TablistEntryMapper.toDefinition(entry)
     }
 
-    fun publishTablistRemove(uniqueId: UUID) = publish(PrefixesConfig::isTablistSynced, PrefixesSubjects.TABLIST_REMOVE) {
+    fun publishTablistRemove(uniqueId: UUID) = publish({ true }, PrefixesSubjects.TABLIST_REMOVE) {
         TablistEntryRemoveEvent.newBuilder()
             .setPlayerId(uniqueId.toString())
             .build()

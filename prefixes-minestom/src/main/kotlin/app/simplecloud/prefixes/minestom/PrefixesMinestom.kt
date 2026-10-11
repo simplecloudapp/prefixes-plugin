@@ -71,7 +71,7 @@ class PrefixesMinestom private constructor(
         sync.subscriber.subscribeTablist(
             onUpdate = tablist::update,
             onRemove = { publisherId, id -> tablist.remove(publisherId, id) },
-            onRequest = { MinecraftServer.getSchedulerManager().scheduleNextTick { manager.publishAll(true) } }
+            onRequest = { MinecraftServer.getSchedulerManager().scheduleNextTick { manager.publishAll() } }
         )
         sync.publisher.publishTablistRequest()
 
@@ -79,6 +79,7 @@ class PrefixesMinestom private constructor(
             while (isActive) {
                 delay(30.seconds)
                 MinecraftServer.getSchedulerManager().scheduleNextTick { manager.publishAll() }
+                tablist.expire()
             }
         }
     }

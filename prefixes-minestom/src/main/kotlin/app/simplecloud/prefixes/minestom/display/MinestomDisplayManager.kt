@@ -49,12 +49,11 @@ class MinestomDisplayManager(
             if (key.viewer == id) teams.remove(key) else removeTeam(key)
         }
 
-        entries.remove(id)
-        prefixes.sync?.publisher?.publishTablistRemove(id)
+        unpublish(id)
     }
 
     fun clear() {
-        entries.clear()
+        unpublishAll()
         teams.keys.toList().forEach(::removeTeam)
         onlinePlayers().forEach { player -> player.displayName = null }
     }
@@ -84,8 +83,12 @@ class MinestomDisplayManager(
         }
     }
 
-    fun publishAll(force: Boolean = false) {
-        onlinePlayers().forEach { player -> publish(player, force) }
+    fun publishAll() {
+        onlinePlayers().forEach { player -> publish(player, true) }
+    }
+
+    fun unpublishAll() {
+        entries.keys.forEach(::unpublish)
     }
 
     private fun showTo(player: Player, viewer: Player, team: TeamsPacket?) {
@@ -129,6 +132,11 @@ class MinestomDisplayManager(
         if (force || previous != entry) {
             publisher.publishTablistEntry(entry)
         }
+    }
+
+    private fun unpublish(id: UUID) {
+        if (entries.remove(id) == null) return
+        prefixes.sync?.publisher?.publishTablistRemove(id)
     }
 
     private fun createTeam(player: Player, data: PrefixesPlayerData): TeamsPacket? {

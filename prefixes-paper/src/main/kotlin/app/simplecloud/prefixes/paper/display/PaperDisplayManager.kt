@@ -55,12 +55,11 @@ class PaperDisplayManager(
             if (key.viewer == id) teams.remove(key) else removeTeam(key)
         }
 
-        entries.remove(id)
-        prefixes.sync?.publisher?.publishTablistRemove(id)
+        unpublish(id)
     }
 
     fun clear() {
-        entries.clear()
+        unpublishAll()
         teams.keys.toList().forEach(::removeTeam)
         Bukkit.getOnlinePlayers().forEach { player -> player.playerListName(null) }
     }
@@ -88,10 +87,14 @@ class PaperDisplayManager(
         }
     }
 
-    fun publishAll(force: Boolean = false) {
+    fun publishAll() {
         Bukkit.getOnlinePlayers().forEach { player ->
-            player.scheduler.run(plugin, { publish(player, force) }, null)
+            player.scheduler.run(plugin, { publish(player, true) }, null)
         }
+    }
+
+    fun unpublishAll() {
+        entries.keys.forEach(::unpublish)
     }
 
     private fun showTo(player: Player, viewer: Player, team: PaperPlayerTeam?) {
@@ -128,6 +131,11 @@ class PaperDisplayManager(
         if (force || previous != entry) {
             publisher.publishTablistEntry(entry)
         }
+    }
+
+    private fun unpublish(id: UUID) {
+        if (entries.remove(id) == null) return
+        prefixes.sync?.publisher?.publishTablistRemove(id)
     }
 
     private fun createTeam(player: Player, data: PrefixesPlayerData): PaperPlayerTeam? {

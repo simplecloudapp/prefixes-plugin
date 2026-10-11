@@ -17,6 +17,7 @@ class MinestomPrefixesListener(
         onAllPlayersUpdate()
 
         if (!prefixes.config.get().isTablistSynced()) {
+            manager.unpublishAll()
             tablist.clear()
             return
         }

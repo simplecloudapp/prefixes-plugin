@@ -15,6 +15,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.PaperCommandManager
 import space.chunks.customname.paper.CustomNameManagerImpl
+import java.util.concurrent.TimeUnit
 
 class PrefixesPaper : JavaPlugin() {
 
@@ -51,10 +52,13 @@ class PrefixesPaper : JavaPlugin() {
         val sync = prefixes.sync ?: return
 
         sync.subscriber.subscribeChatMessage { message -> Bukkit.getServer().sendMessage(message) }
-        sync.subscriber.subscribeTablist(tablist::update, tablist::remove) { manager.publishAll(true) }
+        sync.subscriber.subscribeTablist(tablist::update, tablist::remove) { manager.publishAll() }
         sync.publisher.publishTablistRequest()
 
-        Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, { manager.publishAll() }, 600L, 600L)
+        Bukkit.getAsyncScheduler().runAtFixedRate(this, {
+            manager.publishAll()
+            tablist.expire()
+        }, 30L, 30L, TimeUnit.SECONDS)
     }
 
     private fun registerCommands(prefixes: Prefixes) {

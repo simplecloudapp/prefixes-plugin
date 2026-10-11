@@ -19,6 +19,7 @@ class PaperPrefixesListener(
         onAllPlayersUpdate()
 
         if (!prefixes.config.get().isTablistSynced()) {
+            manager.unpublishAll()
             tablist.clear()
             return
         }

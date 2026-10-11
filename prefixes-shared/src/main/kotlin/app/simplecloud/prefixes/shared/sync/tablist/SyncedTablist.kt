@@ -2,6 +2,8 @@ package app.simplecloud.prefixes.shared.sync.tablist
 
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 
 abstract class SyncedTablist<P, K> {
 
@@ -10,7 +12,7 @@ abstract class SyncedTablist<P, K> {
     fun update(publisherId: String, entry: TablistEntry) {
         if (isOnline(entry.uniqueId)) return
 
-        val previous = entries.put(entry.uniqueId, SourcedTablistEntry(publisherId, entry))?.entry
+        val previous = entries.put(entry.uniqueId, SourcedTablistEntry(publisherId, entry, TimeSource.Monotonic.markNow()))?.entry
         if (previous != entry) {
             broadcast(createInfoPacket(listOf(entry)))
         }
@@ -33,6 +35,12 @@ abstract class SyncedTablist<P, K> {
 
     fun clear() {
         entries.keys.toList().forEach { id -> remove(id) }
+    }
+
+    fun expire() {
+        entries.entries
+            .filter { (_, sourced) -> sourced.updatedAt.elapsedNow() > 90.seconds }
+            .forEach { (id, sourced) -> if (entries.remove(id, sourced)) hide(sourced.entry) }
     }
 
     fun sync(player: P) {
