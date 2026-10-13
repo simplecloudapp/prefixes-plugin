@@ -1,5 +1,6 @@
 package app.simplecloud.prefixes.minestom.platform
 
+import app.simplecloud.plugin.api.minestom.permission.MinestomPermissions
 import app.simplecloud.plugin.api.shared.permission.PermissionChecker
 import app.simplecloud.prefixes.shared.platform.PrefixesPlatform
 import net.luckperms.api.LuckPerms
@@ -11,13 +12,16 @@ import java.util.UUID
 
 class MinestomPlatformImpl(
     private val path: Path,
-    private val permissionChecker: PermissionChecker<UUID>,
+    private val permissions: MinestomPermissions,
     private val luckPerms: LuckPerms?
 ) : PrefixesPlatform {
 
     override fun getDataDirectory(): File = path.toFile()
 
-    override fun getPermissionChecker(): PermissionChecker<UUID> = permissionChecker
+    override fun getPermissionChecker(): PermissionChecker<UUID> = PermissionChecker { id, permission ->
+        val player = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(id)
+        permissions.hasCheck && player != null && permissions.hasPermission(player, permission)
+    }
 
     override fun getLuckPerms(): LuckPerms? = luckPerms ?: runCatching { LuckPermsProvider.get() }.getOrNull()
 

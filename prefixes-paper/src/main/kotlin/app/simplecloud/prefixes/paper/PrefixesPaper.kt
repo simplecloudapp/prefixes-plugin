@@ -1,7 +1,7 @@
 package app.simplecloud.prefixes.paper
 
+import app.simplecloud.plugin.api.paper.command.PaperCloudSenderMapper
 import app.simplecloud.prefixes.api.PrefixesApi
-import app.simplecloud.prefixes.paper.command.PrefixesPaperSenderMapper
 import app.simplecloud.prefixes.paper.display.PaperDisplayManager
 import app.simplecloud.prefixes.paper.display.PaperTablist
 import app.simplecloud.prefixes.paper.listener.PlayerListener
@@ -62,7 +62,7 @@ class PrefixesPaper : JavaPlugin() {
     }
 
     private fun registerCommands(prefixes: Prefixes) {
-        val manager = PaperCommandManager.builder(PrefixesPaperSenderMapper())
+        val manager = PaperCommandManager.builder(PaperCloudSenderMapper)
             .executionCoordinator(ExecutionCoordinator.asyncCoordinator())
             .buildOnEnable(this)
 

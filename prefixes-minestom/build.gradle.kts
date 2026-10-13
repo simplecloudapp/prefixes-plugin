@@ -2,6 +2,7 @@ dependencies {
     api(project(":prefixes-shared"))
     compileOnly(libs.minestom)
     compileOnly(libs.slf4j.api)
+    implementation(libs.simplecloud.plugin.minestom)
     implementation(libs.cloud.command.minestom)
 }
 

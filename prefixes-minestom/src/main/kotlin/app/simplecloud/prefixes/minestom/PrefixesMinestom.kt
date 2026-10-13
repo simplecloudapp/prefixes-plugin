@@ -1,12 +1,12 @@
 package app.simplecloud.prefixes.minestom
 
+import app.simplecloud.plugin.api.minestom.command.MinestomCloudSenderMapper
+import app.simplecloud.plugin.api.minestom.permission.MinestomPermissions
 import app.simplecloud.prefixes.api.PrefixesApi
 import app.simplecloud.prefixes.api.PrefixesApiProvider
-import app.simplecloud.prefixes.minestom.command.PrefixesMinestomSenderMapper
 import app.simplecloud.prefixes.minestom.display.MinestomDisplayManager
 import app.simplecloud.prefixes.minestom.display.MinestomTablist
 import app.simplecloud.prefixes.minestom.listener.PlayerListener
-import app.simplecloud.prefixes.minestom.permission.MinestomPermissions
 import app.simplecloud.prefixes.minestom.platform.MinestomPlatformImpl
 import app.simplecloud.prefixes.minestom.platform.MinestomPrefixesListener
 import app.simplecloud.prefixes.shared.Prefixes
@@ -35,7 +35,7 @@ class PrefixesMinestom private constructor(
 
     private val node = EventNode.all("simplecloud-prefixes").setPriority(Int.MAX_VALUE)
     private val permissions = MinestomPermissions(permission)
-    private val platform = MinestomPlatformImpl(directory, permissions.getChecker(), luckPerms)
+    private val platform = MinestomPlatformImpl(directory, permissions, luckPerms)
     private val prefixes = Prefixes(platform)
     private val manager = MinestomDisplayManager(prefixes, CustomNamesMinestom.getManager())
     private val tablist = MinestomTablist()
@@ -89,7 +89,7 @@ class PrefixesMinestom private constructor(
 
         val commandManager = MinestomCommandManager(
             ExecutionCoordinator.asyncCoordinator(),
-            PrefixesMinestomSenderMapper(permissions),
+            MinestomCloudSenderMapper(permissions),
             permissions::hasPermission
         )
 

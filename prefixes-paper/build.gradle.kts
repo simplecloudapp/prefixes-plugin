@@ -6,6 +6,7 @@ plugins {
 dependencies {
     api(project(":prefixes-shared"))
     compileOnly(libs.paper.api)
+    implementation(libs.simplecloud.plugin.paper)
     implementation(libs.cloud.command.paper)
     implementation(libs.reflection.remapper)
     paperweight.paperDevBundle(libs.versions.paper)

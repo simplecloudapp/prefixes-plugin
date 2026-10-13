@@ -1,11 +1,12 @@
 package app.simplecloud.prefixes.shared.command
 
+import app.simplecloud.plugin.api.shared.command.CloudSender
 import app.simplecloud.prefixes.shared.Prefixes
 import app.simplecloud.prefixes.shared.utilities.PrefixesPermissions
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.incendo.cloud.CommandManager
 
-class PrefixesCommand<C : PrefixesSender>(
+class PrefixesCommand<C : CloudSender>(
     private val manager: CommandManager<C>,
     private val prefixes: Prefixes
 ) {
