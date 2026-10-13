@@ -6,7 +6,7 @@ dependencies {
     api(project(":prefixes-api"))
     api(libs.simplecloud.plugin.api)
     implementation(libs.jnats) {
-        // only needed for NKey
+        // only needed for NATS NKey
         exclude(group = "org.bouncycastle")
     }
     implementation(libs.slf4j.api)
