@@ -1,9 +1,9 @@
 package app.simplecloud.prefixes.shared
 
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
+import app.simplecloud.plugin.api.shared.config.DefaultConfigInstaller
 import app.simplecloud.prefixes.api.PrefixesApiProvider
 import app.simplecloud.prefixes.shared.api.PrefixesApiImpl
-import app.simplecloud.prefixes.shared.config.DefaultConfigInstaller
 import app.simplecloud.prefixes.shared.config.MessageConfig
 import app.simplecloud.prefixes.shared.config.PrefixesConfig
 import app.simplecloud.prefixes.shared.config.SyncConfig

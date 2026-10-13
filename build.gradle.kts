@@ -13,7 +13,7 @@ check(file("custom-names/custom-names-api/src/main/kotlin").isDirectory) {
 
 allprojects {
     group = "app.simplecloud.plugin"
-    version = "1.1.0"
+    version = "1.1.1"
 
     repositories {
         mavenCentral()
