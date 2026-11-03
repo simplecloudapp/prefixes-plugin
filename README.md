@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **Moved:** Prefixes now lives in [simplecloud-plugins](https://github.com/simplecloudapp/simplecloud-plugins/tree/main/server/prefixes). This repository is archived.
+
 # Prefixes Plugin
 
 ![Banner][banner]
